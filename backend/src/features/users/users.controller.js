@@ -3,49 +3,49 @@ const db = require('../../config/firebase');
 
 const getAllUsers = async (req, res) => {
   try {
+    const adminUser = req.user;
     let query = db.collection('users');
-    const { search, role } = req.query;
 
-    if (role) {
-      query = query.where('role', '==', role);
+    if (adminUser.adminDomain === 'Hostel') {
+      query = query.where('isHosteller', '==', true);
+    } else if (adminUser.adminDomain !== 'ALL_DEPARTMENTS') {
+      query = query.where('department', '==', adminUser.adminDomain);
     }
     
-    if (search) {
-      query = query.orderBy('displayName').startAt(search).endAt(search + '\uf8ff');
-    }
-
     const usersSnapshot = await query.get();
     const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.status(200).send(users);
   } catch (error) {
     console.error('Error fetching users:', error);
-    res.status(500).send({ message: 'Error fetching users.', error: error.message });
+    res.status(500).send({ message: 'Error fetching users.' });
   }
 };
 
 const createUser = async (req, res) => {
-  const { email, password, displayName, role, department, username, academicInfo } = req.body;
-
-  if (!email || !password || !displayName || !role || !department || !username) {
-    return res.status(400).send({ message: 'Missing required fields.' });
-  }
+  const { 
+    email, password, displayName, role, department, 
+    username, academicInfo, classId, isHosteller, 
+    permissionLevel, adminDomain 
+  } = req.body;
 
   try {
     const userRecord = await admin.auth().createUser({ email, password, displayName });
     const uid = userRecord.uid;
 
     const newUser = {
-      uid,
-      email,
-      displayName,
-      role,
-      department,
-      username,
-      createdAt: new Date(),
+      uid, email, displayName, role, department, 
+      username, createdAt: new Date()
     };
     
-    if (role === 'student' && academicInfo) {
+    if (role === 'student') {
       newUser.academicInfo = academicInfo;
+      newUser.classId = classId;
+      newUser.isHosteller = isHosteller || false;
+    }
+
+    if (role === 'admin') {
+      newUser.permissionLevel = permissionLevel;
+      newUser.adminDomain = adminDomain;
     }
 
     await db.collection('users').doc(uid).set(newUser);
@@ -58,19 +58,37 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { displayName, role, department, username, academicInfo } = req.body;
+  const { displayName, role, department, username, academicInfo, isHosteller, hostelInfo } = req.body;
 
   try {
-    await admin.auth().updateUser(id, { displayName });
-
-    const userRef = db.collection('users').doc(id);
-    const updateData = { displayName, role, department, username };
-    
-    if (role === 'student' && academicInfo) {
-      updateData.academicInfo = academicInfo;
+    if (displayName) {
+      await admin.auth().updateUser(id, { displayName });
     }
 
-    await userRef.update(updateData);
+    const userRef = db.collection('users').doc(id);
+    const updateData = {}; 
+
+    if (displayName !== undefined) updateData.displayName = displayName;
+    if (role !== undefined) updateData.role = role;
+    if (department !== undefined) updateData.department = department;
+    if (username !== undefined) updateData.username = username;
+    
+    if (role === 'student' || (role === undefined && req.body.hasOwnProperty('isHosteller'))) {
+        if (academicInfo) {
+            updateData.academicInfo = academicInfo;
+        }
+        if (isHosteller !== undefined) {
+            updateData.isHosteller = isHosteller;
+        }
+    }
+
+    if (hostelInfo) {
+      updateData.hostelInfo = hostelInfo;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await userRef.update(updateData);
+    }
 
     res.status(200).send({ message: 'User updated successfully.' });
   } catch (error) {

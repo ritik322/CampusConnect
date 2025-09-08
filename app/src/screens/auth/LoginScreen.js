@@ -14,8 +14,9 @@ import {
 import auth from '@react-native-firebase/auth';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
+import API_URL from '../../config/apiConfig';
 
-const API_URL = 'http://192.168.59.189:3000/api';
+
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');

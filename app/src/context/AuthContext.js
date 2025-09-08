@@ -1,10 +1,10 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import auth from '@react-native-firebase/auth';
 import axios from 'axios';
+import API_URL from '../config/apiConfig';
 
 export const AuthContext = createContext();
 
-const API_URL = 'http://192.168.59.189:3000/api'; 
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

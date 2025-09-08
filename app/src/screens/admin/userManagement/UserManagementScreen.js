@@ -1,14 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, SafeAreaView, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, SafeAreaView, ActivityIndicator, TouchableOpacity, TextInput, Alert } from 'react-native';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import UserListItem from '../../components/admin/UserListItem';
 import { useFocusEffect } from '@react-navigation/native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Toast from 'react-native-toast-message';
-
-const API_URL = 'http://192.168.59.189:3000/api';
+import UserListItem from '../../../components/admin/UserListItem';
+import API_URL from '../../../config/apiConfig';
 
 const UserManagementScreen = ({ navigation }) => {
   const [masterUsers, setMasterUsers] = useState([]);
@@ -17,26 +16,25 @@ const UserManagementScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const idToken = await auth().currentUser.getIdToken();
-      const response = await axios.get(`${API_URL}/users`, {
-        headers: { Authorization: `Bearer ${idToken}` }
-      });
-      setMasterUsers(response.data);
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
+  const fetchUsers = useCallback(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const idToken = await auth().currentUser.getIdToken();
+        const response = await axios.get(`${API_URL}/users`, {
+          headers: { Authorization: `Bearer ${idToken}` }
+        });
+        setMasterUsers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUsers();
-    }, [])
-  );
+  useFocusEffect(fetchUsers);
 
   useEffect(() => {
     let result = masterUsers;
@@ -54,6 +52,18 @@ const UserManagementScreen = ({ navigation }) => {
   const handleEdit = (user) => {
     navigation.navigate('EditUser', { user });
   };
+  
+
+  const confirmDelete = (userId) => {
+    Alert.alert(
+      "Delete User",
+      "Are you sure you want to delete this user?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => handleDelete(userId) }
+      ]
+    );
+  };
 
   const handleDelete = async (userId) => {
     try {
@@ -62,7 +72,7 @@ const UserManagementScreen = ({ navigation }) => {
         headers: { Authorization: `Bearer ${idToken}` }
       });
       Toast.show({ type: 'success', text1: 'Success', text2: 'User deleted.' });
-      fetchUsers(); // Refresh the list
+      setMasterUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : error.message;
       Toast.show({ type: 'error', text1: 'Error', text2: errorMessage });
@@ -78,22 +88,24 @@ const UserManagementScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-    const renderHiddenItem = (data, rowMap) => (
-    <View className="flex-1 flex-row justify-between items-center rounded-2xl mb-4 overflow-hidden">
-      <TouchableOpacity
-        className="w-20 h-full items-center justify-center bg-blue-500"
-        onPress={() => handleEdit(data.item)}
-      >
-        <Icon name="pencil" size={30} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        className="w-20 h-full items-center justify-center bg-red-500"
-        onPress={() => handleDelete(data.item.id)}
-      >
-        <Icon name="delete" size={30} color="white" />
-      </TouchableOpacity>
-    </View>
-  );
+  const renderHiddenItem = (data) => (
+  <View className="flex-1 flex-row justify-between items-center rounded-2xl mb-4">
+    <TouchableOpacity
+      className="w-20 h-full items-center justify-center bg-blue-500 rounded-l-2xl"
+      onPress={() => handleEdit(data.item)}
+    >
+      <Icon name="pencil" size={25} color="white" />
+      <Text className="text-white text-xs mt-1">Edit</Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      className="w-20 h-full items-center justify-center bg-red-500 rounded-r-2xl"
+      onPress={() => confirmDelete(data.item.id)}
+    >
+      <Icon name="delete" size={25} color="white" />
+      <Text className="text-white text-xs mt-1">Delete</Text>
+    </TouchableOpacity>
+  </View>
+);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -118,9 +130,7 @@ const UserManagementScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <View className="px-6 mb-4 flex-row " style={{
-        columnGap: 4
-      }}>
+      <View className="px-6 mb-4 flex-row justify-around">
         <FilterButton title="All" role="" />
         <FilterButton title="Admin" role="admin" />
         <FilterButton title="Faculty" role="faculty" />
@@ -132,12 +142,12 @@ const UserManagementScreen = ({ navigation }) => {
       ) : (
         <SwipeListView
           data={filteredUsers}
-          renderItem={(data, rowMap) => <UserListItem user={data.item} />}
+          renderItem={(data) => <UserListItem user={data.item} />}
           renderHiddenItem={renderHiddenItem}
           leftOpenValue={80}
           rightOpenValue={-80}
           keyExtractor={item => item.id}
-          contentContainerStyle={{ paddingHorizontal: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
         />
       )}
 

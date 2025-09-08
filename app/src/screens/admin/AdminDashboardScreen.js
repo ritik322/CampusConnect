@@ -3,17 +3,18 @@ import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'r
 import auth from '@react-native-firebase/auth';
 import { useAuth } from '../../context/AuthContext';
 import DashboardCard from '../../components/admin/DashboardCard';
+import { useNavigation } from '@react-navigation/native';
 
 const allAdminFeatures = [
-  { id: '1', title: 'Manage Users', icon: 'account-group', requiredDomain: 'ALL_DEPARTMENTS' },
-  { id: '2', title: 'Publish Notice', icon: 'bullhorn', requiredDomain: null },
-  { id: '3', title: 'Manage Exams', icon: 'clipboard-list', requiredDomain: 'DEAN_ACADEMICS' },
-  { id: '4', title: 'Manage Hostels', icon: 'office-building', requiredDomain: 'HOSTEL_WARDEN' },
-  { id: '5', title: 'Manage Placements', icon: 'briefcase-account', requiredDomain: 'PLACEMENT_CELL' },
+  { id: '1', title: 'Manage Users', icon: 'account-group', navigateTo: 'UserManagement', requiredPermission: ['superadmin', 'hod'] },
+  { id: '2', title: 'Notices', icon: 'newspaper-variant-multiple-outline', navigateTo: 'NoticeBoard', requiredPermission: ['superadmin', 'hod', 'warden'] },
+  { id: '3', title: 'Timetable Management', icon: 'calendar-clock', navigateTo: 'TimetableHub', requiredPermission: ['superadmin', 'hod'] },
+  { id: '4', title: 'Manage Hostels', icon: 'office-building', requiredPermission: ['superadmin', 'warden'], navigateTo: 'ManageHostels' },
 ];
 
-const AdminDashboardScreen = ({navigation}) => {
+const AdminDashboardScreen = () => {
   const { userProfile } = useAuth();
+  const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
@@ -23,22 +24,18 @@ const AdminDashboardScreen = ({navigation}) => {
     }
   };
 
-  const handleCardPress = (featureTitle) => {
-    if (featureTitle === 'Manage Users') {
-      navigation.navigate('UserManagement');
+  const handleCardPress = (feature) => {
+    if (feature.navigateTo) {
+      navigation.navigate(feature.navigateTo);
     } else {
-      Alert.alert(featureTitle, "This screen is under development.");
+      Alert.alert(feature.title, "This screen is under development.");
     }
   };
 
   const visibleFeatures = allAdminFeatures.filter(feature => {
-    if (!feature.requiredDomain) {
-      return true;
-    }
-    return userProfile?.adminDomain === 'ALL_DEPARTMENTS' || userProfile?.adminDomain === feature.requiredDomain;
+    if (!feature.requiredPermission) return true;
+    return feature.requiredPermission.includes(userProfile?.permissionLevel);
   });
-
-  
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -47,14 +44,14 @@ const AdminDashboardScreen = ({navigation}) => {
         <Text className="text-base text-gray-500">What would you like to do today?</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 8 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16 }}>
         <View className="flex-row flex-wrap justify-between">
           {visibleFeatures.map((item) => (
             <DashboardCard
               key={item.id}
               title={item.title}
               icon={item.icon}
-              onPress={() => handleCardPress(item.title)}
+              onPress={() => handleCardPress(item)}
             />
           ))}
         </View>
