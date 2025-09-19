@@ -44,8 +44,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
+  include("C:/Users/ritik/Desktop/CampusConnect/app/android/app/.cxx/RelWithDebInfo/y493z2ae/armeabi-v7a/rndocumentpickerCGen_autolinked_build/cmake_install.cmake")
   include("C:/Users/ritik/Desktop/CampusConnect/app/android/app/.cxx/RelWithDebInfo/y493z2ae/armeabi-v7a/rnpicker_autolinked_build/cmake_install.cmake")
-  include("C:/Users/ritik/Desktop/CampusConnect/app/android/app/.cxx/RelWithDebInfo/y493z2ae/armeabi-v7a/rndocumentpicker_autolinked_build/cmake_install.cmake")
   include("C:/Users/ritik/Desktop/CampusConnect/app/android/app/.cxx/RelWithDebInfo/y493z2ae/armeabi-v7a/safeareacontext_autolinked_build/cmake_install.cmake")
   include("C:/Users/ritik/Desktop/CampusConnect/app/android/app/.cxx/RelWithDebInfo/y493z2ae/armeabi-v7a/rnscreens_autolinked_build/cmake_install.cmake")
   include("C:/Users/ritik/Desktop/CampusConnect/app/android/app/.cxx/RelWithDebInfo/y493z2ae/armeabi-v7a/RNVectorIconsSpec_autolinked_build/cmake_install.cmake")

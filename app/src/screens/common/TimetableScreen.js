@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, SafeAreaView, ActivityIndicator, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
@@ -15,106 +15,117 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 const TimetableScreen = ({ navigation }) => {
   const { userProfile } = useAuth();
-  const [schedule, setSchedule] = useState(null);
+  const [timetableData, setTimetableData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({ subjects: {}, faculty: {}, classrooms: {} });
+  const [selectedDay, setSelectedDay] = useState(DAYS[0]);
 
   const fetchData = useCallback(() => {
-    if (!userProfile) return;
-
     const loadData = async () => {
       setLoading(true);
       try {
         const idToken = await auth().currentUser.getIdToken();
         const headers = { Authorization: `Bearer ${idToken}` };
-        
-        const [scheduleRes, subjectsRes, facultyRes, classroomsRes] = await Promise.all([
-          axios.get(`${API_URL}/timetable`, { headers }),
-          axios.get(`${API_URL}/subjects`, { headers }),
-          axios.get(`${API_URL}/users`, { headers }),
-          axios.get(`${API_URL}/classrooms`, { headers })
-        ]);
-
-        const subjectsMap = subjectsRes.data.reduce((acc, s) => ({ ...acc, [s.id]: s }), {});
-        const facultyMap = facultyRes.data.reduce((acc, f) => ({ ...acc, [f.id]: f }), {});
-        const classroomsMap = classroomsRes.data.reduce((acc, c) => ({ ...acc, [c.id]: c }), {});
-        
-        setData({ subjects: subjectsMap, faculty: facultyMap, classrooms: classroomsMap });
-        
-        if (scheduleRes.data && Object.keys(scheduleRes.data).length > 0) {
-          setSchedule(scheduleRes.data);
-        } else {
-          setSchedule({});
-          Toast.show({ type: 'info', text1: 'No Timetable Found', text2: 'A schedule has not been generated yet.' });
-        }
-
+        const response = await axios.get(`${API_URL}/timetable`, { headers });
+        setTimetableData(response.data);
       } catch (error) {
         console.error(error);
-        Toast.show({ type: 'error', text1: 'Error', text2: 'Could not fetch timetable data.' });
+        Toast.show({ type: 'error', text2: 'Could not fetch timetable data.' });
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+    if (userProfile) loadData();
   }, [userProfile]);
 
   useFocusEffect(fetchData);
 
-  const renderCell = (day, time) => {
-    const slotId = `${day}-${time}`;
-    const entry = schedule ? schedule[slotId] : null;
-
-    if (!entry) {
-      // Logic to find the class-specific break time can be added here
-      return <View className="flex-1 border-r border-b border-gray-200 p-1" />;
+  const dailySchedule = useMemo(() => {
+    if (!timetableData?.schedule) return {};
+    const grouped = {};
+    for (const day of DAYS) {
+        grouped[day] = [];
     }
-    
-    const subject = data.subjects[entry.subjectId];
-    const faculty = data.faculty[entry.facultyId];
-    const classroom = data.classrooms[entry.classroomId];
+    for(const slot of LECTURE_SLOTS) {
+        for(const day of DAYS) {
+            const slotId = `${day}-${slot}`;
+            if(timetableData.schedule[slotId]){
+                grouped[day].push({time: slot, ...timetableData.schedule[slotId]});
+            }
+        }
+    }
+    return grouped;
+  }, [timetableData]);
 
+  const DayTab = ({ day }) => (
+    <TouchableOpacity
+      onPress={() => setSelectedDay(day)}
+      className={`px-4 py-2 rounded-full mx-1 ${selectedDay === day ? 'bg-blue-600' : 'bg-white'}`}
+    >
+      <Text className={`font-bold ${selectedDay === day ? 'text-white' : 'text-blue-600'}`}>{day.substring(0, 3)}</Text>
+    </TouchableOpacity>
+  );
+
+  const LectureCard = ({ item }) => {
+    const isFaculty = timetableData.type === 'faculty';
     return (
-      <View className="flex-1 border-r border-b border-gray-200 p-1 justify-center items-center bg-blue-50">
-        <Text className="text-xs font-bold text-center text-blue-800">{subject?.subjectCode || 'N/A'}</Text>
-        <Text className="text-[10px] text-center text-blue-700" numberOfLines={1}>{faculty?.displayName || 'N/A'}</Text>
-        <Text className="text-[10px] text-center text-blue-600">({classroom?.roomNumber || 'N/A'})</Text>
+      <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm flex-row items-center">
+        <View className="w-20 items-center justify-center border-r border-gray-200 pr-4">
+            <Text className="text-lg font-bold text-blue-600">{item.time.split(' ')[0]}</Text>
+            <Text className="text-xs text-blue-500">{item.time.split(' ')[1]}</Text>
+        </View>
+        <View className="flex-1 pl-4">
+            <Text className="text-base font-bold text-gray-800" numberOfLines={1}>{item.subjectCode}</Text>
+            <Text className="text-sm text-gray-600 mt-1" numberOfLines={1}>
+              {isFaculty ? `Class: ${item.className}` : item.facultyName}
+            </Text>
+            <Text className="text-sm text-gray-500 mt-1">Room: {item.roomNumber}</Text>
+        </View>
       </View>
     );
   };
 
+  const getHeaderTitle = () => {
+    if (!timetableData) return "My Timetable";
+    if (timetableData.type === 'student') return timetableData.className || "My Timetable";
+    return "My Faculty Timetable";
+  }
+
+  if (loading) {
+    return (
+        <SafeAreaView className="flex-1 justify-center items-center bg-gray-100">
+            <ActivityIndicator size="large" color="#2563EB" />
+        </SafeAreaView>
+    )
+  }
+  
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="p-6 flex-row items-center">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={28} color="#1F2937" />
         </TouchableOpacity>
-        <Text className="text-3xl font-bold text-gray-800 ml-4">My Timetable</Text>
+        <Text className="text-3xl font-bold text-gray-800 ml-4">{getHeaderTitle()}</Text>
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#2563EB" />
-      ) : (
-        <ScrollView horizontal>
-          <View>
-            <View className="flex-row bg-gray-200">
-              <View className="w-20 border-r border-b border-gray-300 p-2 justify-center items-center"><Text className="font-bold">Time</Text></View>
-              {DAYS.map(day => <View key={day} className="w-28 border-r border-b border-gray-300 p-2 justify-center items-center"><Text className="font-bold">{day}</Text></View>)}
-            </View>
-            {LECTURE_SLOTS.map(time => (
-              <View key={time} className="flex-row h-16">
-                <View className="w-20 border-r border-b border-gray-200 p-1 justify-center items-center"><Text className="text-xs font-semibold">{time}</Text></View>
-                {DAYS.map(day => (
-                  <View key={`${day}-${time}`} className="w-28">
-                    {renderCell(day, time)}
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
+      <View className="px-4 mb-4">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {DAYS.map(day => <DayTab key={day} day={day} />)}
         </ScrollView>
-      )}
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}>
+        {dailySchedule[selectedDay] && dailySchedule[selectedDay].length > 0 ? (
+          dailySchedule[selectedDay].map((item, index) => <LectureCard key={index} item={item} />)
+        ) : (
+          <View className="mt-20 items-center">
+            <Icon name="calendar-check" size={60} color="#D1D5DB" />
+            <Text className="text-lg text-gray-500 mt-4">No lectures scheduled for {selectedDay}.</Text>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default TimetableScreen;
+

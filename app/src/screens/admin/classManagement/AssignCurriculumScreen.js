@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
@@ -15,39 +15,39 @@ const AssignCurriculumScreen = ({ route, navigation }) => {
   const [assignments, setAssignments] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback( () => {
-    const loadData = async ()=>{
-    setLoading(true);
-    try {
-      const idToken = await auth().currentUser.getIdToken();
-      const headers = { Authorization: `Bearer ${idToken}` };
-      
-      const subjectsResponse = await axios.get(`${API_URL}/subjects`, { headers });
-      const facultyResponse = await axios.get(`${API_URL}/users`, { headers, params: { role: 'faculty' } });
+  const fetchData = useCallback(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const idToken = await auth().currentUser.getIdToken();
+        const headers = { Authorization: `Bearer ${idToken}` };
+        
+        const subjectsResponse = await axios.get(`${API_URL}/subjects`, { headers });
+        const facultyResponse = await axios.get(`${API_URL}/users`, { headers, params: { role: 'faculty' } });
 
-      const departmentSubjects = subjectsResponse.data.filter(s => s.department === selectedClass.department);
-      const departmentFaculty = facultyResponse.data.filter(f => f.department === selectedClass.department);
-      
-      setSubjects(departmentSubjects);
-      setFaculty(departmentFaculty.map(f => ({ label: f.displayName, value: f.id })));
+        const departmentSubjects = subjectsResponse.data.filter(s => s.department === selectedClass.department);
+        const departmentFaculty = facultyResponse.data.filter(f => f.department === selectedClass.department);
+        
+        setSubjects(departmentSubjects);
+        setFaculty(departmentFaculty.map(f => ({ label: f.displayName, value: f.id })));
 
-      const initialAssignments = {};
-      if (selectedClass.curriculum) {
-        selectedClass.curriculum.forEach(item => {
-          initialAssignments[item.subjectId] = { 
-            facultyId: item.facultyId, 
-            lecturesPerWeek: item.lecturesPerWeek ? item.lecturesPerWeek.toString() : '' 
-          };
-        });
+        const initialAssignments = {};
+        if (selectedClass.curriculum) {
+          selectedClass.curriculum.forEach(item => {
+            initialAssignments[item.subjectId] = { 
+              facultyId: item.facultyId, 
+            };
+          });
+        }
+        setAssignments(initialAssignments);
+
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
       }
-      setAssignments(initialAssignments);
-
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-    } finally {
-      setLoading(false);
-    }}
-    loadData()
+    };
+    loadData();
   }, [selectedClass]);
 
   useFocusEffect(fetchData);
@@ -66,11 +66,13 @@ const AssignCurriculumScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       const idToken = await auth().currentUser.getIdToken();
-      const formattedAssignments = Object.keys(assignments).map(subjectId => ({
-        subjectId,
-        facultyId: assignments[subjectId]?.facultyId,
-        lecturesPerWeek: parseInt(assignments[subjectId]?.lecturesPerWeek, 10) || 0,
-      })).filter(a => a.lecturesPerWeek > 0 && a.facultyId);
+      
+  
+      const formattedAssignments = subjects.map(subject => ({
+        subjectId: subject.id,
+        facultyId: assignments[subject.id]?.facultyId,
+        lecturesPerWeek: subject.lecturesPerWeek || 0, 
+      })).filter(a => a.facultyId); 
 
       await axios.put(`${API_URL}/curriculum/classes/${selectedClass.id}`, { assignments: formattedAssignments }, {
         headers: { Authorization: `Bearer ${idToken}` }
@@ -89,7 +91,8 @@ const AssignCurriculumScreen = ({ route, navigation }) => {
   const renderItem = ({ item }) => (
     <View className="bg-white p-4 mb-4 rounded-lg shadow-sm">
       <Text className="text-lg font-semibold text-gray-800">{item.subjectName}</Text>
-      <Text className="text-sm text-gray-500 mb-3">{item.subjectCode}</Text>
+      <Text className="text-sm text-gray-500 mb-1">{item.subjectCode}</Text>
+      <Text className="text-sm text-blue-600 font-semibold mb-3">Lectures per Week: {item.lecturesPerWeek || 'N/A'}</Text>
       
       <Text className="text-base text-gray-600 mb-2">Assign Faculty</Text>
       <RNPickerSelect
@@ -99,16 +102,6 @@ const AssignCurriculumScreen = ({ route, navigation }) => {
         placeholder={{ label: 'Select faculty...', value: null }}
         style={{ inputAndroid: { backgroundColor: '#F3F4F6', borderRadius: 8, padding: 10, color: 'black' } }}
         Icon={() => <Icon name="chevron-down" size={24} color="gray" />}
-      />
-      
-      <Text className="text-base text-gray-600 mb-2 mt-2">Lectures per Week</Text>
-      <TextInput
-        className="bg-gray-100 p-3 rounded-lg border border-gray-300 text-black"
-        keyboardType="number-pad"
-        value={assignments[item.id]?.lecturesPerWeek || ''}
-        onChangeText={(text) => handleAssignmentChange(item.id, 'lecturesPerWeek', text)}
-        placeholder="e.g., 4"
-        placeholderTextColor="#9CA3AF"
       />
     </View>
   );

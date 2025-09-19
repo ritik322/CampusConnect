@@ -14,6 +14,7 @@ const AddSubjectScreen = ({ navigation }) => {
   const [subjectCode, setSubjectCode] = useState('');
   const [department, setDepartment] = useState(null);
   const [year, setYear] = useState('');
+  const [lecturesPerWeek, setLecturesPerWeek] = useState(''); // New state
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,7 +24,7 @@ const AddSubjectScreen = ({ navigation }) => {
   }, [userProfile]);
 
   const handleAddSubject = async () => {
-    if (!subjectName || !subjectCode || !department || !year) {
+    if (!subjectName || !subjectCode || !department || !year || !lecturesPerWeek) {
       Toast.show({ type: 'error', text1: 'Error', text2: 'Please fill all fields.' });
       return;
     }
@@ -35,6 +36,7 @@ const AddSubjectScreen = ({ navigation }) => {
         subjectCode: subjectCode.trim().toUpperCase(),
         department,
         year: parseInt(year, 10),
+        lecturesPerWeek: parseInt(lecturesPerWeek, 10),
       };
 
       await axios.post(`${API_URL}/subjects`, newSubject, {
@@ -91,6 +93,17 @@ const AddSubjectScreen = ({ navigation }) => {
           onChangeText={setYear}
         />
 
+        {/* --- NEW FIELD --- */}
+        <Text className="text-base text-gray-600 mb-2">Lectures per Week</Text>
+        <TextInput
+          className="bg-white p-4 mb-4 rounded-lg border border-gray-300 text-lg text-black"
+          keyboardType="number-pad"
+          value={lecturesPerWeek}
+          onChangeText={setLecturesPerWeek}
+          placeholder="e.g., 4"
+          placeholderTextColor="#9CA3AF"
+        />
+
         <Text className="text-base text-gray-600 mb-2">Department</Text>
         <RNPickerSelect
           onValueChange={(value) => setDepartment(value)}
@@ -128,7 +141,7 @@ const pickerSelectStyles = StyleSheet.create({
     marginBottom: 16,
   },
   iconContainer: {
-    top: 15,
+    top: 18,
     right: 15,
   },
   placeholder: {

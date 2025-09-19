@@ -6,7 +6,7 @@ const getAllUsers = async (req, res) => {
     const adminUser = req.user;
     let query = db.collection('users');
 
-    if (adminUser.adminDomain === 'Hostel') {
+    if (adminUser.adminDomain === 'Hostel' || adminUser.adminDomain === 'ALL_DEPARTMENTS') {
       query = query.where('isHosteller', '==', true);
     } else if (adminUser.adminDomain !== 'ALL_DEPARTMENTS') {
       query = query.where('department', '==', adminUser.adminDomain);

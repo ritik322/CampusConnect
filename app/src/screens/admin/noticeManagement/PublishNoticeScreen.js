@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, StyleSheet, ScrollView, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
 import Toast from 'react-native-toast-message';
 import DocumentPicker from '@react-native-documents/picker'
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_UPLOAD_PRESET } from '@env';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '@env';
 import API_URL from '../../../config/apiConfig';
 import RNPickerSelect from 'react-native-picker-select';
 import { useAuth } from '../../../context/AuthContext';
@@ -41,7 +41,7 @@ const PublishNoticeScreen = ({ navigation }) => {
         const deptLabel = `Department: ${deptValue.toUpperCase()}`;
         const targetValue = JSON.stringify({ type: 'DEPARTMENT', value: deptValue });
         options.push({ label: deptLabel, value: targetValue });
-        setTarget(targetValue); 
+        setTarget(targetValue);
       } else if (userProfile.permissionLevel === 'warden') {
         try {
             const idToken = await auth().currentUser.getIdToken();
@@ -54,13 +54,23 @@ const PublishNoticeScreen = ({ navigation }) => {
     generateAudienceOptions();
   }, [userProfile]);
 
+  // --- THIS IS THE FIX ---
+  // We have removed all manual permission checks.
+  // We now let the library handle the entire process.
   const handleFilePick = async () => {
     try {
-      const res = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.allFiles] });
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.allFiles],
+      });
       setFile(res);
     } catch (err) {
-      if (!DocumentPicker.isCancel(err)) {
-        Toast.show({ type: 'error', text2: 'Failed to pick file.' });
+      if (DocumentPicker.isCancel(err)) {
+        // This is not an error, the user just closed the picker.
+        console.log('User cancelled the file picker.');
+      } else {
+        // An actual error occurred.
+        Toast.show({ type: 'error', text2: 'An error occurred while picking the file.' });
+        console.error('File Picker Error: ', err);
       }
     }
   };
@@ -75,9 +85,15 @@ const PublishNoticeScreen = ({ navigation }) => {
       let attachmentUrl = null;
       if (file) {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', {
+            uri: file.uri,
+            type: file.type,
+            name: file.name,
+        });
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const cloudinaryResponse = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, formData);
+        const cloudinaryResponse = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         attachmentUrl = cloudinaryResponse.data.secure_url;
       }
 
@@ -96,6 +112,7 @@ const PublishNoticeScreen = ({ navigation }) => {
       Toast.show({ type: 'success', text2: 'Notice published successfully.' });
       navigation.goBack();
     } catch (error) {
+      console.error("Publish Error:", error.response ? error.response.data : error);
       Toast.show({ type: 'error', text1: 'Publish Failed', text2: 'An error occurred.' });
     } finally {
       setLoading(false);
@@ -137,7 +154,7 @@ const PublishNoticeScreen = ({ navigation }) => {
         <TouchableOpacity className="bg-blue-600 p-4 rounded-lg items-center shadow mt-8" onPress={handlePublish} disabled={loading}>
           {loading ? <ActivityIndicator color="white" /> : <Text className="text-white text-lg font-bold">Publish Notice</Text>}
         </TouchableOpacity>
-        </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };
