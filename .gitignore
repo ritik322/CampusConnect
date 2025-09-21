@@ -30,6 +30,7 @@ Thumbs.db
 ehthumbs.db
 
 Android files
+/app/android/app/.cxx
 /app/android/.gradle
 /app/android/.idea
 /app/android/local.properties

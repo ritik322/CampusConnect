@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Linking } from 'react-native';
+import { View, Text, Pressable, Linking, TouchableOpacity } from 'react-native';
 import { format, isValid } from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -66,7 +66,7 @@ const NoticeCard = ({ notice, onPress }) => {
 
       <View className="border-t border-gray-100 mt-4 pt-2 flex-row justify-between items-center">
         <View>
-            <Text className="text-xs text-gray-400">Published by:</Text>
+            <Text className="text-xs text-gray-400">Published to:</Text>
         </View>
         <View className="px-3 py-1 rounded-full bg-gray-100">
             <Text className="text-xs font-bold text-gray-500">{getSourceLabel()}</Text>

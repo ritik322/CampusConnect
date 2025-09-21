@@ -45,12 +45,10 @@ const getAllSubjects = async (req, res) => {
 const updateSubject = async (req, res) => {
   try {
     const { subjectId } = req.params;
-    // --- FIX 2: Read 'lecturesPerWeek' for updates too ---
     const { subjectCode, subjectName, department, year, lecturesPerWeek } = req.body;
 
     const updateData = { subjectCode, subjectName, department, year, lecturesPerWeek };
     
-    // This is a good practice to prevent saving 'undefined' values
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
     await db.collection('subjects').doc(subjectId).update(updateData);

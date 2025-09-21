@@ -37,9 +37,9 @@ import AddHostelScreen from '../screens/admin/hostelManagement/AddHostelScreen';
 import HostelHubScreen from '../screens/admin/hostelManagement/HostelHubScreen';
 import ManageHostelStudentsScreen from '../screens/admin/hostelManagement/ManageHostelStudentsScreen';
 import AssignHostelDetailScreen from '../screens/admin/hostelManagement/AssignHostelDetailScreen';
-
-
-
+import UploadFileScreen from '../screens/faculty/workspace/UploadFileScreen';
+import WorkspaceScreen from '../screens/faculty/workspace/WorkspaceScreen';
+import EditFileScreen from '../screens/faculty/workspace/EditFileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,40 +55,99 @@ const AppNavigator = () => {
           <Stack.Screen name="Loading" component={LoadingScreen} />
         ) : (
           <>
-            {userProfile.role === 'admin' && <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />}
-            {userProfile.role === 'student' && <Stack.Screen name="StudentDashboard" component={StudentDashboardScreen} />}
-            {userProfile.role === 'faculty' && <Stack.Screen name="FacultyDashboard" component={FacultyDashboardScreen} />}
+            {userProfile.role === 'admin' && (
+              <Stack.Screen
+                name="AdminDashboard"
+                component={AdminDashboardScreen}
+              />
+            )}
+            {userProfile.role === 'student' && (
+              <Stack.Screen
+                name="StudentDashboard"
+                component={StudentDashboardScreen}
+              />
+            )}
+            {userProfile.role === 'faculty' && (
+              <Stack.Screen
+                name="FacultyDashboard"
+                component={FacultyDashboardScreen}
+              />
+            )}
 
             <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
             <Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
             <Stack.Screen name="Timetable" component={TimetableScreen} />
 
+            {userProfile.role === 'faculty' && (
+              <>
+                <Stack.Screen name="Workspace" component={WorkspaceScreen} />
+                <Stack.Screen name="UploadFile" component={UploadFileScreen} />
+                <Stack.Screen name="EditFile" component={EditFileScreen} />
+              </>
+            )}
+
             {userProfile.role === 'admin' && (
               <>
-                <Stack.Screen name="TimetableHub" component={TimetableHubScreen} />
-                <Stack.Screen name="UserManagement" component={UserManagementScreen} /> 
+                <Stack.Screen
+                  name="TimetableHub"
+                  component={TimetableHubScreen}
+                />
+                <Stack.Screen
+                  name="UserManagement"
+                  component={UserManagementScreen}
+                />
                 <Stack.Screen name="AddUser" component={AddUserScreen} />
                 <Stack.Screen name="EditUser" component={EditUserScreen} />
-                
-                <Stack.Screen name="PublishNotice" component={PublishNoticeScreen} />
+
+                <Stack.Screen
+                  name="PublishNotice"
+                  component={PublishNoticeScreen}
+                />
                 <Stack.Screen name="EditNotice" component={EditNoticeScreen} />
-                
-                <Stack.Screen name="ManageSubjects" component={ManageSubjectsScreen} />
+
+                <Stack.Screen
+                  name="ManageSubjects"
+                  component={ManageSubjectsScreen}
+                />
                 <Stack.Screen name="AddSubject" component={AddSubjectScreen} />
-                
-                <Stack.Screen name="ManageClassrooms" component={ManageClassroomsScreen} />
-                <Stack.Screen name="AddClassroom" component={AddClassroomScreen} />
-                
-                <Stack.Screen name="ManageClasses" component={ManageClassesScreen} />
+
+                <Stack.Screen
+                  name="ManageClassrooms"
+                  component={ManageClassroomsScreen}
+                />
+                <Stack.Screen
+                  name="AddClassroom"
+                  component={AddClassroomScreen}
+                />
+
+                <Stack.Screen
+                  name="ManageClasses"
+                  component={ManageClassesScreen}
+                />
                 <Stack.Screen name="AddClass" component={AddClassScreen} />
-                <Stack.Screen name="AssignCurriculum" component={AssignCurriculumScreen} />
-                <Stack.Screen name="GenerateTimetable" component={GenerateTimetableScreen} />
-                
-                <Stack.Screen name="ManageHostels" component={ManageHostelsScreen} />
+                <Stack.Screen
+                  name="AssignCurriculum"
+                  component={AssignCurriculumScreen}
+                />
+                <Stack.Screen
+                  name="GenerateTimetable"
+                  component={GenerateTimetableScreen}
+                />
+
+                <Stack.Screen
+                  name="ManageHostels"
+                  component={ManageHostelsScreen}
+                />
                 <Stack.Screen name="AddHostel" component={AddHostelScreen} />
                 <Stack.Screen name="HostelHub" component={HostelHubScreen} />
-                <Stack.Screen name="ManageHostelStudents" component={ManageHostelStudentsScreen} />
-                <Stack.Screen name="AssignHostelDetail" component={AssignHostelDetailScreen} />
+                <Stack.Screen
+                  name="ManageHostelStudents"
+                  component={ManageHostelStudentsScreen}
+                />
+                <Stack.Screen
+                  name="AssignHostelDetail"
+                  component={AssignHostelDetailScreen}
+                />
               </>
             )}
           </>
@@ -99,4 +158,3 @@ const AppNavigator = () => {
 };
 
 export default AppNavigator;
-

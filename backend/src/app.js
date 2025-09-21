@@ -10,6 +10,7 @@ const classRoutes = require('./features/classes/classes.routes');
 const curriculumRoutes = require('./features/curriculum/curriculum.routes');
 const timetableRoutes = require('./features/timetable/timetable.routes');
 const hostelRoutes = require('./features/hostels/hostels.routes');
+const workspaceRoutes = require('./features/workspace/workspace.routes');
 
 app.use(express.json());
 
@@ -26,6 +27,7 @@ app.use('/api/classes', classRoutes);
 app.use('/api/curriculum', curriculumRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/hostels', hostelRoutes);
+app.use('/api/workspace', workspaceRoutes);
 
 
 module.exports = app;

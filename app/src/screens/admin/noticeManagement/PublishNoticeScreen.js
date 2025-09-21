@@ -4,7 +4,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
 import Toast from 'react-native-toast-message';
-import DocumentPicker from '@react-native-documents/picker'
+// --- CHANGED HERE ---
+import { pick, types, isCancelError } from '@react-native-documents/picker';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '@env';
 import API_URL from '../../../config/apiConfig';
 import RNPickerSelect from 'react-native-picker-select';
@@ -54,21 +55,16 @@ const PublishNoticeScreen = ({ navigation }) => {
     generateAudienceOptions();
   }, [userProfile]);
 
-  // --- THIS IS THE FIX ---
-  // We have removed all manual permission checks.
-  // We now let the library handle the entire process.
   const handleFilePick = async () => {
     try {
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.allFiles],
+      const res = await pick({
+        type: [types.allFiles],
       });
-      setFile(res);
+      setFile(res[0]);
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        // This is not an error, the user just closed the picker.
-        console.log('User cancelled the file picker.');
+      if (isCancelError(err)) {
+        console.log('User cancelled file picker.');
       } else {
-        // An actual error occurred.
         Toast.show({ type: 'error', text2: 'An error occurred while picking the file.' });
         console.error('File Picker Error: ', err);
       }
@@ -86,13 +82,13 @@ const PublishNoticeScreen = ({ navigation }) => {
       if (file) {
         const formData = new FormData();
         formData.append('file', {
-            uri: file.uri,
-            type: file.type,
-            name: file.name,
+          uri: file.uri,
+          type: file.type,
+          name: file.name,
         });
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
         const cloudinaryResponse = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
         attachmentUrl = cloudinaryResponse.data.secure_url;
       }
@@ -161,9 +157,9 @@ const PublishNoticeScreen = ({ navigation }) => {
 
 const pickerSelectStyles = StyleSheet.create({
   inputAndroid: {
-    fontSize: 16, paddingVertical: 0, paddingHorizontal: 10, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, color: 'black', paddingRight: 30, backgroundColor: 'white', marginBottom: 16,
+    fontSize: 16, paddingVertical: 0, paddingHorizontal: 10, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, color: 'black', paddingRight: 30, backgroundColor: 'white',
   },
-  iconContainer: { top: 18, right: 15, },
+  iconContainer: { top: 15, right: 15, },
   placeholder: { color: '#9CA3AF', },
 });
 
