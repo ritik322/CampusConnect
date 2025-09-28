@@ -24,7 +24,29 @@ const createHostel = async (req, res) => {
 
 const getAllHostels = async (req, res) => {
   try {
-    const hostelsSnapshot = await db.collection('hostels').orderBy('hostelName').get();
+    const user = req.user;
+    let hostelsSnapshot;
+
+    // If user is admin, get all hostels or filter by domain
+    if (user.role === 'admin') {
+      if (user.adminDomain === 'Hostel' || user.adminDomain === 'ALL_DEPARTMENTS') {
+        hostelsSnapshot = await db.collection('hostels').orderBy('hostelName').get();
+      } else {
+        hostelsSnapshot = await db.collection('hostels').where('department', '==', user.adminDomain).orderBy('hostelName').get();
+      }
+    } 
+    // If user is student, only return hostels they have access to
+    else if (user.role === 'student') {
+      hostelsSnapshot = await db.collection('hostels').orderBy('hostelName').get();
+    }
+    // If user is faculty, return hostels from their department
+    else if (user.role === 'faculty') {
+      hostelsSnapshot = await db.collection('hostels').where('department', '==', user.department).orderBy('hostelName').get();
+    }
+    else {
+      hostelsSnapshot = await db.collection('hostels').orderBy('hostelName').get();
+    }
+
     const hostels = hostelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.status(200).send(hostels);
   } catch (error) {
