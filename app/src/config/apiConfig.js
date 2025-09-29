@@ -1,2 +1,2 @@
 
-export default API_URL = 'http://10.66.149.167:3000/api';
+export default API_URL = 'http://172.16.41.180:3000/api';
