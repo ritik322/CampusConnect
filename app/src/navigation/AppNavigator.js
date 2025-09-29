@@ -10,7 +10,9 @@ import NoticeDetailScreen from '../screens/common/NoticeDetailScreen';
 import TimetableScreen from '../screens/common/TimetableScreen';
 
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
-import StudentDashboardScreen from '../screens/student/StudentDashboardScreen';
+import StudentTabNavigator from '../navigation/StudentTabNavigator';
+import StudentHostelScreen from '../screens/student/StudentHostelScreen';
+import StudentAboutScreen from '../screens/student/StudentAboutScreen';
 import FacultyDashboardScreen from '../screens/faculty/FacultyDashboardScreen';
 
 import UserManagementScreen from '../screens/admin/userManagement/UserManagementScreen';
@@ -62,10 +64,20 @@ const AppNavigator = () => {
               />
             )}
             {userProfile.role === 'student' && (
-              <Stack.Screen
-                name="StudentDashboard"
-                component={StudentDashboardScreen}
-              />
+              <>
+                <Stack.Screen
+                  name="StudentMain"
+                  component={StudentTabNavigator}
+                />
+                <Stack.Screen
+                  name="StudentHostel"
+                  component={StudentHostelScreen}
+                />
+                <Stack.Screen
+                  name="StudentAbout"
+                  component={StudentAboutScreen}
+                />
+              </>
             )}
             {userProfile.role === 'faculty' && (
               <Stack.Screen

@@ -25,10 +25,18 @@ const createClass = async (req, res) => {
 const getAllClasses = async (req, res) => {
   try {
     let query = db.collection('classes');
-    const adminDomain = req.user.adminDomain;
+    const user = req.user;
 
-    if (adminDomain !== 'ALL_DEPARTMENTS') {
-      query = query.where('department', '==', adminDomain);
+    // If user is admin, filter by admin domain
+    if (user.role === 'admin') {
+      const adminDomain = user.adminDomain;
+      if (adminDomain !== 'ALL_DEPARTMENTS') {
+        query = query.where('department', '==', adminDomain);
+      }
+    } 
+    // If user is student or faculty, filter by their department
+    else if (user.role === 'student' || user.role === 'faculty') {
+      query = query.where('department', '==', user.department);
     }
     
     const classesSnapshot = await query.orderBy('className').get();
