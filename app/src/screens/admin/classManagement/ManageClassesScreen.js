@@ -49,6 +49,14 @@ const ManageClassesScreen = ({ navigation }) => {
         </Text>
       </View>
 
+      <TouchableOpacity
+        onPress={() => navigation.navigate('SectionAllotment')}
+        className="bg-green-600 p-3 rounded-lg flex-row items-center justify-center mb-4 mx-6 shadow"
+      >
+        <Icon name="account-group-outline" size={22} color="white" />
+        <Text className="text-white text-lg font-bold ml-2">Create & Allot Sections</Text>
+      </TouchableOpacity>
+
       {loading ? (
         <ActivityIndicator size="large" color="#2563EB" />
       ) : (

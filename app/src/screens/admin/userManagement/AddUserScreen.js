@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
 import Toast from 'react-native-toast-message';
-import RNPickerSelect from 'react-native-picker-select';
+import DropDownPicker from 'react-native-dropdown-picker';
 import API_URL from '../../../config/apiConfig';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -28,14 +28,39 @@ const AddUserScreen = ({ navigation }) => {
   const [role, setRole] = useState('student');
 
   const [rollNumber, setRollNumber] = useState('');
-  const [classId, setClassId] = useState(null);
+  const [batch, setBatch] = useState('');
   const [department, setDepartment] = useState(null);
   const [isHosteller, setIsHosteller] = useState(false);
 
   const [adminPermissionLevel, setAdminPermissionLevel] = useState(null);
 
-  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [roleValue, setRoleValue] = useState('student');
+  const [roleItems, setRoleItems] = useState([
+    { label: 'Student', value: 'student' },
+    { label: 'Faculty', value: 'faculty' },
+    { label: 'Admin', value: 'admin' },
+  ]);
+
+  const [deptOpen, setDeptOpen] = useState(false);
+  const [deptItems, setDeptItems] = useState([
+    { label: 'Computer Science (CSE)', value: 'CSE' },
+    { label: 'Information Technology', value: 'IT' },
+    { label: 'Mechanical', value: 'Mechanical' },
+    { label: 'Civil', value: 'Civil' },
+    { label: 'Electrical', value: 'Electrical' },
+  ]);
+
+  const [classOpen, setClassOpen] = useState(false);
+
+  const [adminPermOpen, setAdminPermOpen] = useState(false);
+  const [adminPermItems, setAdminPermItems] = useState([
+    { label: 'Super Admin (All Access)', value: 'superadmin' },
+    { label: 'HOD (Head of Department)', value: 'hod' },
+    { label: 'Warden (Hostel Management)', value: 'warden' },
+  ]);
 
   useEffect(() => {
     if (
@@ -44,26 +69,6 @@ const AddUserScreen = ({ navigation }) => {
     ) {
       setDepartment(userProfile.adminDomain);
     }
-
-    const fetchClasses = async () => {
-      try {
-        const idToken = await auth().currentUser.getIdToken();
-        const response = await axios.get(`${API_URL}/classes`, {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        const classItems = response.data.map(c => ({
-          label: c.className,
-          value: c.id,
-          ...c,
-        }));
-        setClasses(classItems);
-      } catch (e) {
-        console.error('Error fetching classes for dropdown:', e);
-        Toast.show({ type: 'error', text2: 'Could not load classes.' });
-      }
-    };
-
-    fetchClasses();
   }, [userProfile]);
 
   const handleAddUser = async () => {
@@ -71,27 +76,29 @@ const AddUserScreen = ({ navigation }) => {
       displayName: displayName.trim(),
       email: email.trim(),
       password: password.trim(),
-      role,
-      department,
+      role: roleValue,
     };
 
-    if (role === 'student') {
-      const selectedClass = classes.find(c => c.value === classId);
-      if (!selectedClass || !rollNumber.trim()) {
+    if (roleValue === 'student') {
+      if (!rollNumber.trim() || !batch.trim() || !department) {
         Toast.show({ type: 'error', text2: 'Please fill all student fields.' });
         return;
       }
+      userToCreate.department = department;
+      userToCreate.batch = batch.trim();
       userToCreate.username = rollNumber.trim();
       userToCreate.academicInfo = {
         rollNumber: rollNumber.trim(),
-        year: selectedClass.year,
-        section: selectedClass.section,
       };
-      userToCreate.classId = classId;
       userToCreate.isHosteller = isHosteller;
     } else {
+      userToCreate.department = department;
       if (!username.trim()) {
-        Toast.show({ type: 'error',text1: "Failed" ,text2: 'Username is required.' });
+        Toast.show({
+          type: 'error',
+          text1: 'Failed',
+          text2: 'Username is required.',
+        });
         return;
       }
       userToCreate.username = username.trim();
@@ -137,7 +144,11 @@ const AddUserScreen = ({ navigation }) => {
       await axios.post(`${API_URL}/users`, userToCreate, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      Toast.show({ type: 'success', text1: "Success" ,text2: 'User created successfully.' });
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'User created successfully.',
+      });
       navigation.goBack();
     } catch (error) {
       Toast.show({
@@ -149,38 +160,23 @@ const AddUserScreen = ({ navigation }) => {
     }
   };
 
-  const roleItems = [
-    { label: 'Student', value: 'student' },
-    { label: 'Faculty', value: 'faculty' },
-    { label: 'Admin', value: 'admin' },
-  ];
-
-  const adminPermissionLevelItems = [
-    { label: 'Super Admin (All Access)', value: 'superadmin' },
-    { label: 'HOD (Head of Department)', value: 'hod' },
-    { label: 'Warden (Hostel Management)', value: 'warden' },
-  ];
-
-  const departmentItems = [
-    { label: 'Computer Science (CSE)', value: 'cse' },
-    { label: 'Information Technology', value: 'it' },
-    { label: 'Mechanical', value: 'me' },
-    { label: 'Civil', value: 'ce' },
-    { label: 'Electrical', value: 'ee' },
-  ];
-
   const renderDepartmentSelector = () => {
     if (userProfile?.adminDomain === 'ALL_DEPARTMENTS') {
       return (
         <View>
           <Text className="text-base text-gray-600 mb-2">Department</Text>
-          <RNPickerSelect
-            onValueChange={value => setDepartment(value)}
-            items={departmentItems}
-            style={pickerSelectStyles}
-            placeholder={{ label: 'Select a department...', value: null }}
-            Icon={() => <Icon name="chevron-down" size={24} color="gray" />}
+          <DropDownPicker
+            open={deptOpen}
             value={department}
+            items={deptItems}
+            setOpen={setDeptOpen}
+            setValue={setDepartment}
+            setItems={setDeptItems}
+            placeholder="Select a department..."
+            zIndex={2000}
+            listMode="SCROLLVIEW"
+            style={styles.pickerStyle}
+            dropDownContainerStyle={styles.dropdownContainerStyle}
           />
         </View>
       );
@@ -235,15 +231,24 @@ const AddUserScreen = ({ navigation }) => {
         />
 
         <Text className="text-base text-gray-600 mb-2">Role</Text>
-        <RNPickerSelect
-          onValueChange={value => setRole(value)}
-          items={userProfile?.permissionLevel === 'superadmin' ? roleItems : roleItems.filter(r => r.label != 'Admin')}
-          style={pickerSelectStyles}
-          value={role}
-          Icon={() => <Icon name="chevron-down" size={24} color="gray" />}
+        <DropDownPicker
+          open={roleOpen}
+          value={roleValue}
+          items={
+            userProfile?.permissionLevel === 'superadmin'
+              ? roleItems
+              : roleItems.filter(r => r.value !== 'admin')
+          }
+          setOpen={setRoleOpen}
+          setValue={setRoleValue}
+          setItems={setRoleItems}
+          zIndex={3000}
+          listMode="SCROLLVIEW"
+          style={styles.pickerStyle}
+          dropDownContainerStyle={styles.dropdownContainerStyle}
         />
 
-        {role === 'student' && (
+        {roleValue === 'student' && (
           <>
             {renderDepartmentSelector()}
             <Text className="text-base text-gray-600 mb-2">
@@ -256,17 +261,14 @@ const AddUserScreen = ({ navigation }) => {
               keyboardType="number-pad"
             />
 
-            <Text className="text-base text-gray-600 mb-2">
-              Assign to Class
-            </Text>
-            <RNPickerSelect
-              onValueChange={value => setClassId(value)}
-              items={classes.filter(c => c.department === department)}
-              style={pickerSelectStyles}
-              placeholder={{ label: 'Select a class...', value: null }}
-              Icon={() => <Icon name="chevron-down" size={24} color="gray" />}
-              disabled={!department}
+            <Text className="text-base text-gray-600 mb-2">Batch</Text>
+            <TextInput
+              className="bg-white p-3 mb-4 rounded-lg border border-gray-300 text-lg text-black"
+              placeholder="e.g., 2022-2026"
+              value={batch}
+              onChangeText={setBatch}
             />
+
             <View className="flex-row items-center justify-between bg-white p-3 mb-4 rounded-lg border border-gray-300">
               <Text className="text-lg text-black">Is Hosteller?</Text>
               <Switch value={isHosteller} onValueChange={setIsHosteller} />
@@ -274,7 +276,7 @@ const AddUserScreen = ({ navigation }) => {
           </>
         )}
 
-        {role === 'faculty' && (
+        {roleValue === 'faculty' && (
           <>
             <Text className="text-base text-gray-600 mb-2">Username</Text>
             <TextInput
@@ -287,7 +289,7 @@ const AddUserScreen = ({ navigation }) => {
           </>
         )}
 
-        {role === 'admin' && (
+        {roleValue === 'admin' && (
           <>
             <Text className="text-base text-gray-600 mb-2">Username</Text>
             <TextInput
@@ -296,30 +298,23 @@ const AddUserScreen = ({ navigation }) => {
               onChangeText={setUsername}
               autoCapitalize="none"
             />
-
             <Text className="text-base text-gray-600 mb-2">
               Admin Permission Level
             </Text>
-            <RNPickerSelect
-              onValueChange={value => setAdminPermissionLevel(value)}
-              items={adminPermissionLevelItems}
-              style={pickerSelectStyles}
-              placeholder={{ label: 'Select permission level...', value: null }}
-              Icon={() => <Icon name="chevron-down" size={24} color="gray" />}
+            <DropDownPicker
+              open={adminPermOpen}
+              value={adminPermissionLevel}
+              items={adminPermItems}
+              setOpen={setAdminPermOpen}
+              setValue={setAdminPermissionLevel}
+              setItems={setAdminPermItems}
+              placeholder="Select permission level..."
+              zIndex={2000}
+              listMode="SCROLLVIEW"
+              style={styles.pickerStyle}
+              dropDownContainerStyle={styles.dropdownContainerStyle}
             />
-
             {adminPermissionLevel === 'hod' && renderDepartmentSelector()}
-
-            {adminPermissionLevel === 'warden' && (
-              <View>
-                <Text className="text-base text-gray-600 mb-2">Domain</Text>
-                <TextInput
-                  className="bg-gray-200 p-4 mb-4 rounded-lg border border-gray-300 text-lg text-gray-500"
-                  value="Hostel"
-                  editable={false}
-                />
-              </View>
-            )}
           </>
         )}
 
@@ -339,21 +334,14 @@ const AddUserScreen = ({ navigation }) => {
   );
 };
 
-const pickerSelectStyles = StyleSheet.create({
-  inputAndroid: {
-    fontSize: 16,
-    paddingVertical: 0,
-    paddingHorizontal: 10,
-    borderWidth: 1,
+const styles = StyleSheet.create({
+  pickerStyle: {
     borderColor: '#D1D5DB',
-    borderRadius: 8,
-    color: 'black',
-    paddingRight: 30,
-    backgroundColor: 'white',
     marginBottom: 16,
   },
-  iconContainer: { top: 18, right: 15 },
-  placeholder: { color: '#9CA3AF' },
+  dropdownContainerStyle: {
+    borderColor: '#D1D5DB',
+  },
 });
 
 export default AddUserScreen;

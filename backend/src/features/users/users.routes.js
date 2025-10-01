@@ -1,13 +1,17 @@
 const express = require('express');
-const { getAllUsers, createUser, updateUser, deleteUser } = require('./users.controller');
-const isAdmin = require('../../middlewares/isAdmin');
+const multer = require('multer');
+const { getAllUsers, createUser, updateUser, deleteUser, bulkCreateUsers, getUnassignedBatches } = require('./users.controller');
 const isAuthenticated = require('../../middlewares/isAuthenticated');
+const isAdmin = require('../../middlewares/isAdmin');
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
-router.get('/', isAdmin, getAllUsers);
-router.post('/', isAdmin, createUser);
-router.put('/:id', isAdmin, updateUser); 
-router.delete('/:id', isAdmin, deleteUser);
+router.get('/', isAuthenticated, isAdmin, getAllUsers);
+router.post('/', isAuthenticated, isAdmin, createUser);
+router.put('/:id', isAuthenticated, isAdmin, updateUser);
+router.delete('/:id', isAuthenticated, isAdmin, deleteUser);
+router.post('/bulk-upload', isAuthenticated, isAdmin, upload.single('file'), bulkCreateUsers);
+router.get('/unassigned-batches', isAuthenticated, isAdmin, getUnassignedBatches);
 
 module.exports = router;

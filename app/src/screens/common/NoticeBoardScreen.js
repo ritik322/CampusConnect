@@ -15,6 +15,7 @@ const NoticeBoardScreen = ({ navigation }) => {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
   const fetchNotices = useCallback(() => {
     const loadData = async () => {
       setLoading(true);

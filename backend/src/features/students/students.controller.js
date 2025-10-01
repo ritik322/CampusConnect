@@ -1,12 +1,9 @@
-const db = require('../../config/firebase');
+const {db} = require('../../config/firebase');
 
 const getMyClass = async (req, res) => {
   try {
     const firebaseUser = req.user; // This is the decoded Firebase token
     const uid = firebaseUser.uid;
-    
-    console.log('=== Student My-Class Debug ===');
-    console.log('Firebase User UID:', uid);
     
     // Get the user's profile from Firestore
     const userDoc = await db.collection('users').doc(uid).get();
@@ -17,9 +14,7 @@ const getMyClass = async (req, res) => {
     }
     
     const user = userDoc.data();
-    console.log('User profile:', user);
-    console.log('User role:', user.role);
-    console.log('User classId:', user.classId);
+
     
     // Only students can access this endpoint
     if (user.role !== 'student') {
@@ -39,7 +34,6 @@ const getMyClass = async (req, res) => {
       });
     }
     
-    console.log('Fetching class with ID:', user.classId);
     
     // Get class information
     const classDoc = await db.collection('classes').doc(user.classId).get();
@@ -53,7 +47,6 @@ const getMyClass = async (req, res) => {
     }
     
     const classData = { id: classDoc.id, ...classDoc.data() };
-    console.log('Class data found:', classData);
     
     // If no curriculum, return basic class info
     if (!classData.curriculum || !Array.isArray(classData.curriculum) || classData.curriculum.length === 0) {
@@ -65,7 +58,6 @@ const getMyClass = async (req, res) => {
       });
     }
     
-    console.log('Processing curriculum with', classData.curriculum.length, 'items');
     
     // Get subject and faculty details for curriculum
     const subjectIds = classData.curriculum.map(item => item.subjectId);

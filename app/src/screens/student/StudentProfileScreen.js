@@ -264,18 +264,6 @@ const StudentProfileScreen = ({ navigation }) => {
             <Text className="text-red-600 text-sm font-semibold ml-2">Sign Out</Text>
           </TouchableOpacity>
         </ProfileSection>
-
-        <View className="px-4 pb-4 items-center">
-          <View 
-            className="bg-gray-200 p-3 rounded-lg" 
-            style={{ maxWidth: width - 32 }}
-          >
-            <Text className="text-xs text-gray-600 text-center font-medium">
-              CampusConnect Student Portal v1.0.0{'\n'}
-              © 2024 Your Institution. All rights reserved.
-            </Text>
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

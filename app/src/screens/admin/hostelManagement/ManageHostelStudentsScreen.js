@@ -15,31 +15,32 @@ const ManageHostelStudentsScreen = ({ route, navigation }) => {
   const [search, setSearch] = useState('');
 
   const fetchHostelStudents = useCallback(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const idToken = await auth().currentUser.getIdToken();
-        const response = await axios.get(`${API_URL}/users`, {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        
-        // --- THIS IS THE NEW FILTERING LOGIC ---
-        const allHostellers = response.data;
-        const relevantStudents = allHostellers.filter(student => 
-            !student.hostelInfo || student.hostelInfo.hostelId === hostel.id
-        );
+  const loadData = async () => {
+   setLoading(true);
+   try {
+    const idToken = await auth().currentUser.getIdToken();
+    const response = await axios.get(`${API_URL}/users`, {
+     headers: { Authorization: `Bearer ${idToken}` },
+    });
+    
+    const allUsers = response.data;
+        const allHostellers = allUsers.filter(user => user.isHosteller === true);
 
-        setMasterStudentList(relevantStudents);
-        setFilteredStudents(relevantStudents);
-      } catch (error) {
-        console.error('Failed to fetch hostel students:', error);
-        Toast.show({ type: 'error', text2: 'Could not load students.' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [hostel.id]);
+    const relevantStudents = allHostellers.filter(student => 
+      !student.hostelInfo || student.hostelInfo.hostelId === hostel.id
+    );
+
+    setMasterStudentList(relevantStudents);
+    setFilteredStudents(relevantStudents);
+   } catch (error) {
+    console.error('Failed to fetch hostel students:', error);
+    Toast.show({ type: 'error', text2: 'Could not load students.' });
+   } finally {
+    setLoading(false);
+   }
+  };
+  loadData();
+ }, [hostel.id]);
 
   useFocusEffect(fetchHostelStudents);
 
@@ -48,7 +49,7 @@ const ManageHostelStudentsScreen = ({ route, navigation }) => {
       const lowercasedSearch = search.toLowerCase();
       const filtered = masterStudentList.filter(student =>
         student.displayName.toLowerCase().includes(lowercasedSearch) ||
-        student.academicInfo.rollNumber.toLowerCase().includes(lowercasedSearch)
+        student.academicInfo?.rollNumber.toLowerCase().includes(lowercasedSearch)
       );
       setFilteredStudents(filtered);
     } else {
@@ -68,7 +69,7 @@ const ManageHostelStudentsScreen = ({ route, navigation }) => {
       >
         <View>
           <Text className="text-lg font-bold text-gray-800">{student.displayName}</Text>
-          <Text className="text-gray-600">Roll No: {student.academicInfo.rollNumber}</Text>
+          <Text className="text-gray-600">Roll No: {student.academicInfo?.rollNumber}</Text>
         </View>
         <View className={`px-3 py-1 rounded-full ${cardColor}`}>
             <Text className={`font-bold ${textColor}`}>{hostelName}</Text>

@@ -140,8 +140,7 @@ const StudentClassesScreen = () => {
 
   const fetchClassData = async () => {
     try {
-      console.log('=== StudentClassesScreen Debug ===');
-      console.log('UserProfile:', userProfile);
+     
       
       if (!userProfile) {
         console.log('No user profile available');
@@ -150,14 +149,12 @@ const StudentClassesScreen = () => {
       }
 
       const token = await auth().currentUser.getIdToken();
-      console.log('Token obtained, testing authentication...');
       
       // First test authentication
       try {
         const testResponse = await axios.get(`${API_URL}/students/test`, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
-        console.log('Auth test response:', testResponse.data);
       } catch (testError) {
         console.error('Auth test failed:', testError.response?.data || testError.message);
       }
@@ -167,15 +164,13 @@ const StudentClassesScreen = () => {
         headers: { Authorization: `Bearer ${token}` } 
       });
       
-      console.log('Student class response:', response.data);
       
       const { classInfo: fetchedClassInfo, subjects: fetchedSubjects } = response.data;
       
       setClassInfo(fetchedClassInfo);
       setSubjects(fetchedSubjects || []);
       
-      console.log('Class info set:', fetchedClassInfo);
-      console.log('Subjects set:', fetchedSubjects);
+    
       
     } catch (error) {
       console.error('Error fetching class data:', error);

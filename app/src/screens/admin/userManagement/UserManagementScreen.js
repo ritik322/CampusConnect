@@ -15,18 +15,27 @@ const UserManagementScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
+  const [classMap, setClassMap] = useState(new Map());
 
-  const fetchUsers = useCallback(() => {
+  const fetchUsersAndClasses = useCallback(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         const idToken = await auth().currentUser.getIdToken();
-        const response = await axios.get(`${API_URL}/users`, {
-          headers: { Authorization: `Bearer ${idToken}` }
-        });
-        setMasterUsers(response.data);
+        const headers = { Authorization: `Bearer ${idToken}` };
+        
+        const [usersResponse, classesResponse] = await Promise.all([
+          axios.get(`${API_URL}/users`, { headers }),
+          axios.get(`${API_URL}/classes`, { headers })
+        ]);
+
+        const newClassMap = new Map(classesResponse.data.map(c => [c.id, c.className]));
+        setClassMap(newClassMap);
+        setMasterUsers(usersResponse.data);
+
       } catch (error) {
-        console.error("Failed to fetch users:", error);
+        console.error("Failed to fetch data:", error);
+        Toast.show({ type: 'error', text2: 'Failed to load user data.' });
       } finally {
         setLoading(false);
       }
@@ -34,7 +43,7 @@ const UserManagementScreen = ({ navigation }) => {
     loadData();
   }, []);
 
-  useFocusEffect(fetchUsers);
+  useFocusEffect(fetchUsersAndClasses);
 
   useEffect(() => {
     let result = masterUsers;
@@ -46,13 +55,27 @@ const UserManagementScreen = ({ navigation }) => {
         user.displayName.toLowerCase().includes(search.toLowerCase())
       );
     }
-    setFilteredUsers(result);
-  }, [search, filter, masterUsers]);
+    const usersWithClassNames = result.map(user => {
+      if (user.role === 'student' && user.academicInfo?.classId) {
+        return {
+          ...user,
+          className: classMap.get(user.academicInfo.classId) || 'Invalid Class',
+        };
+      } else if (user.role === 'student') {
+        return {
+            ...user,
+            className: 'Unassigned',
+        }
+      }
+      return user;
+    });
+
+    setFilteredUsers(usersWithClassNames);
+  }, [search, filter, masterUsers, classMap]);
 
   const handleEdit = (user) => {
     navigation.navigate('EditUser', { user });
   };
-  
 
   const confirmDelete = (userId) => {
     Alert.alert(
@@ -128,7 +151,15 @@ const UserManagementScreen = ({ navigation }) => {
             onChangeText={setSearch}
           />
         </View>
-      </View>
+      </View> 
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate('BulkUpload')}
+        className="bg-green-600 p-3 rounded-lg flex-row items-center justify-center mb-4 mx-6 shadow"
+      >
+        <Icon name="upload" size={22} color="white" />
+        <Text className="text-white text-lg font-bold ml-2">Bulk Upload Users</Text>
+      </TouchableOpacity>
 
       <View className="px-6 mb-4 flex-row justify-around">
         <FilterButton title="All" role="" />

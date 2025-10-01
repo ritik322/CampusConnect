@@ -11,6 +11,9 @@ const UserListItem = ({ user }) => {
       <View className="ml-4 flex-1">
         <Text className="text-lg font-semibold text-gray-800">{user.displayName}</Text>
         <Text className="text-sm text-gray-500">{user.email}</Text>
+        {user.role === 'student' && (
+          <Text className="text-sm text-blue-600 font-semibold mt-1">{user.className || 'Unassigned'}</Text>
+        )}
       </View>
       <View className="px-3 py-1 bg-gray-200 rounded-full">
         <Text className="text-xs font-bold text-gray-600 uppercase">{user.role}</Text>

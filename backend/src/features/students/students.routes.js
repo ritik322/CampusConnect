@@ -6,8 +6,6 @@ const router = express.Router();
 
 // Test endpoint to debug authentication
 router.get('/test', isAuthenticated, (req, res) => {
-  console.log('=== Student Test Endpoint ===');
-  console.log('Firebase User:', req.user);
   res.status(200).send({ 
     message: 'Authentication working',
     firebaseUser: req.user,

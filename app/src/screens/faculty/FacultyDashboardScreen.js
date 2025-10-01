@@ -52,6 +52,7 @@ const facultyFeatures = [
     icon: 'calendar-week',
     navigateTo: 'Timetable',
   },
+    { id: '5', title: 'View Notices', icon: 'newspaper-variant-multiple-outline', navigateTo: 'NoticeBoard' },
 ];
 
 const FacultyDashboardScreen = ({ navigation }) => {

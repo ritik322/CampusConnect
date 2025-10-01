@@ -1,4 +1,4 @@
-const db = require('../../config/firebase');
+const {db} = require('../../config/firebase');
 const admin = require('firebase-admin');
 
 const LECTURE_SLOTS = [
@@ -58,7 +58,6 @@ const generateTimetable = async (req, res) => {
     const classroomAvailability = {};
     const subjectClassDayAvailability = {}; 
 
-    // --- NEW: Assign a mandatory break to each class ---
     const classBreakTimes = {};
     const BREAK_SLOTS = ['11:30 AM', '12:30 PM'];
     for (const classData of allClasses) {

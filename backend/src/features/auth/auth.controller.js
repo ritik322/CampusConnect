@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const db = require('../../config/firebase');
+const {db} = require('../../config/firebase');
 
 const getUserProfile = async (req, res) => {
   const { idToken } = req.body;
@@ -46,6 +46,7 @@ const getEmailFromUsername = async (req, res) => {
     res.status(200).send({ email: userData.email });
 
   } catch (error) {
+    console.log(error)
     res.status(500).send({ message: 'Server error.', error: error.message });
   }
 };

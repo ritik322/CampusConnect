@@ -1,4 +1,4 @@
-const db = require('../../config/firebase');
+const {db} = require('../../config/firebase');
 
 const createHostel = async (req, res) => {
   try {

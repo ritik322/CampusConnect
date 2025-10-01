@@ -1,4 +1,4 @@
-const db = require('../../config/firebase');
+const {db} = require('../../config/firebase');
 
 const getFiles = async (req, res) => {
     try {
