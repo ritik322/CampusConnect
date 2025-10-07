@@ -36,23 +36,22 @@ const facultyFeatures = [
   },
   {
     id: '2',
-    title: 'Manage Attendance',
-    icon: 'check-decagram-outline',
-    navigateTo: 'ManageAttendance',
-  },
-  {
-    id: '3',
-    title: 'Upload Marks',
-    icon: 'file-chart-outline',
-    navigateTo: 'UploadMarks',
-  },
-  {
-    id: '4',
     title: 'View Full Timetable',
     icon: 'calendar-week',
     navigateTo: 'Timetable',
   },
-    { id: '5', title: 'View Notices', icon: 'newspaper-variant-multiple-outline', navigateTo: 'NoticeBoard' },
+  {
+    id: '3',
+    title: 'View Notices',
+    icon: 'newspaper-variant-multiple-outline',
+    navigateTo: 'NoticeBoard',
+  },
+  {
+    id: '4',
+    title: 'My Courses',
+    icon: 'school-outline',
+    navigateTo: 'MyCourses',
+  },
 ];
 
 const FacultyDashboardScreen = ({ navigation }) => {

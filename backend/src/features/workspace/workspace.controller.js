@@ -55,28 +55,56 @@ const deleteFile = async (req, res) => {
 const updateFile = async (req, res) => {
     try {
         const { fileId } = req.params;
-        const { title, description, tags } = req.body;
+        const facultyId = req.user.uid;
+        const { title, description, tags, sharedWith } = req.body; // <-- Now accepts sharedWith
+
         const fileRef = db.collection('workspaceFiles').doc(fileId);
         const doc = await fileRef.get();
 
-        if (!doc.exists) {
-            return res.status(404).send({ message: 'File not found.' });
-        }
-        if (doc.data().facultyId !== req.user.uid) {
-            return res.status(403).send({ message: 'Forbidden: You cannot edit this file.' });
+        if (!doc.exists || doc.data().facultyId !== facultyId) {
+            return res.status(404).send({ message: 'File not found or you do not have permission.' });
         }
 
-        await fileRef.update({
-            title,
-            description,
-            tags,
-        });
+        const updateData = {};
+        if (title) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (tags !== undefined) updateData.tags = tags;
+        if (sharedWith !== undefined) updateData.sharedWith = sharedWith; // <-- Saves the new field
 
+        await fileRef.update(updateData);
         res.status(200).send({ message: 'File updated successfully.' });
+
     } catch (error) {
-        res.status(500).send({ message: 'Error updating file.', error: error.message });
+        console.error("Error updating file:", error);
+        res.status(500).send({ message: 'Failed to update file.' });
     }
 };
 
-module.exports = { getFiles, createFile, deleteFile, updateFile };
+const getSharedFiles = async (req, res) => {
+    try {
+        const { classId } = req.query;
+
+        if (!classId) {
+            return res.status(400).send({ message: 'A classId is required.' });
+        }
+
+        const snapshot = await db.collection('workspaceFiles')
+            .where('sharedWith', 'array-contains', classId)
+            .get();
+
+        if (snapshot.empty) {
+            return res.status(200).json([]);
+        }
+
+        const sharedFiles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.status(200).json(sharedFiles);
+
+    } catch (error) {
+        console.error("Error fetching shared files:", error);
+        res.status(500).send({ message: 'Failed to fetch shared files.' });
+    }
+};
+
+
+module.exports = { getFiles, createFile, deleteFile, updateFile,getSharedFiles };
 

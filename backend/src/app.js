@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 
@@ -12,6 +13,9 @@ const timetableRoutes = require('./features/timetable/timetable.routes');
 const hostelRoutes = require('./features/hostels/hostels.routes');
 const workspaceRoutes = require('./features/workspace/workspace.routes');
 const studentRoutes = require('./features/students/students.routes');
+const assessmentRoutes = require('./features/assessments/assessments.routes');
+const submissionRoutes = require('./features/submissions/submissions.routes');
+const marksRoutes = require('./features/marks/marks.route')
 
 app.use(express.json());
 
@@ -30,6 +34,8 @@ app.use('/api/timetable', timetableRoutes);
 app.use('/api/hostels', hostelRoutes);
 app.use('/api/workspace', workspaceRoutes);
 app.use('/api/students', studentRoutes);
-
+app.use('/api/assessments', assessmentRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/marks', marksRoutes);
 
 module.exports = app;

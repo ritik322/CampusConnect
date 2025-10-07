@@ -24,6 +24,9 @@ const FileItem = ({ item, onDelete, onEdit }) => {
                             </View>
                         ))}
                     </View>
+                    {item.sharedWith && item.sharedWith.length > 0 && (
+                    <Icon name="account-group-outline" size={22} color="#16A34A" />
+                )}
                 </View>
                 <View>
                     <TouchableOpacity onPress={() => onEdit(item)} className="p-2">
@@ -103,7 +106,7 @@ const WorkspaceScreen = () => {
     };
 
     const handleEdit = (file) => {
-        navigation.navigate('EditFile', { fileData: file });
+        navigation.navigate('EditFile', { file: file });
     };
 
     useFocusEffect(

@@ -3,7 +3,8 @@ const {
   createClass, 
   getAllClasses, 
   deleteClass, 
-  createAndAllotSections
+  createAndAllotSections,
+  getClassById
 } = require('./classes.controller');
 const isAdmin = require('../../middlewares/isAdmin');
 const isAuthenticated = require('../../middlewares/isAuthenticated');
@@ -14,5 +15,6 @@ router.post('/', isAdmin, createClass);
 router.get('/', isAuthenticated, getAllClasses);
 router.delete('/:classId', isAdmin, deleteClass);
 router.post('/allot-sections', isAdmin, createAndAllotSections);
+router.get('/:id', isAuthenticated, getClassById);
 
 module.exports = router;

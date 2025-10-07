@@ -10,7 +10,7 @@ const createAndAllotSections = async (req, res) => {
 
         const studentsSnapshot = await db.collection('users')
             .where('academicInfo.batch', '==', batch)
-            .where('academicInfo.department', '==', department)
+            .where('department', '==', department)
             .where('academicInfo.classId', '==', null)
             .get();
 
@@ -118,4 +118,20 @@ const deleteClass = async (req, res) => {
   }
 };
 
-module.exports = { createClass, getAllClasses, deleteClass, createAndAllotSections };
+const getClassById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const classDoc = await db.collection('classes').doc(id).get();
+
+        if (!classDoc.exists) {
+            return res.status(404).send({ message: 'Class not found.' });
+        }
+
+        res.status(200).json({ id: classDoc.id, ...classDoc.data() });
+    } catch (error) {
+        console.error("Error fetching class by ID:", error);
+        res.status(500).send({ message: 'Error fetching class data.' });
+    }
+};
+
+module.exports = { createClass, getAllClasses, deleteClass, getClassById, createAndAllotSections };

@@ -19,7 +19,7 @@ const getUnassignedBatches = async (req, res) => {
         snapshot.docs.forEach(doc => {
             const data = doc.data();
             const batch = data.academicInfo?.batch;
-            const department = data.academicInfo?.department;
+            const department = data.department;
 
             if (batch && department) {
                 const key = `${batch}-${department}`;
@@ -96,10 +96,10 @@ const bulkCreateUsers = async (req, res) => {
                         throw new Error('Missing student fields: rollNumber, batch, department.');
                     }
                     newUser.username = rollNumber.toString();
+                    newUser.department = department,
                     newUser.academicInfo = {
                         urn: rollNumber.toString(),
                         batch: batch,
-                        department: department,
                         classId: null
                     };
                     newUser.isHosteller = (isHosteller || false).toString().toLowerCase() === 'true';

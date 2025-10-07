@@ -147,7 +147,7 @@ const getTimetableForUser = async (req, res) => {
     const userData = userDoc.data();
 
     if (userData.role === 'student') {
-      const classId = userData.classId;
+       const classId = userData.academicInfo?.classId;
       if (!classId) return res.status(200).send({ schedule: {} });
 
       const timetableDoc = await db.collection('timetables').doc(classId).get();

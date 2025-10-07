@@ -7,7 +7,6 @@ import Toast from 'react-native-toast-message';
 
 import { useAuth } from '../context/AuthContext';
 
-// --- Screen Imports ---
 import LoginScreen from '../screens/auth/LoginScreen';
 import LoadingScreen from '../screens/common/LoadingScreen';
 import NoticeBoardScreen from '../screens/common/NoticeBoardScreen';
@@ -15,8 +14,6 @@ import NoticeDetailScreen from '../screens/common/NoticeDetailScreen';
 import TimetableScreen from '../screens/common/TimetableScreen';
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import StudentTabNavigator from './StudentTabNavigator';
-import StudentHostelScreen from '../screens/student/StudentHostelScreen';
-import StudentAboutScreen from '../screens/student/StudentAboutScreen';
 import FacultyDashboardScreen from '../screens/faculty/FacultyDashboardScreen';
 import UserManagementScreen from '../screens/admin/userManagement/UserManagementScreen';
 import AddUserScreen from '../screens/admin/userManagement/AddUserScreen';
@@ -42,10 +39,18 @@ import WorkspaceScreen from '../screens/faculty/workspace/WorkspaceScreen';
 import EditFileScreen from '../screens/faculty/workspace/EditFileScreen';
 import BulkUploadScreen from '../screens/admin/userManagement/BulkUploadScreen';
 import SectionAllotmentScreen from '../screens/admin/classManagement/SectionAllotmentScreen';
+import MyCoursesScreen from '../screens/faculty/assessments/MyCoursesScreen';
+import CourseDashboardScreen from '../screens/faculty/assessments/CourseDashboardScreen';
+import AddAssignmentScreen from '../screens/faculty/assessments/AddAssignmentScreen';
+import AddExamScreen from '../screens/faculty/assessments/AddExamScreen';
+import GradeAssessmentScreen from '../screens/faculty/assessments/GradeAssessmentScreen';
+import CourseDetailsScreen from '../screens/student/CourseDetailsScreen';
+import AssignmentDetailScreen from '../screens/student/AssignmentDetailScreen';
+import MyMarksScreen from '../screens/student/MyMarksScreen';
+import ProfileScreen from '../screens/student/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
-// This is the main navigator for a logged-in user
 const AppStack = () => {
     const { userProfile } = useAuth();
     
@@ -58,10 +63,13 @@ const AppStack = () => {
 
     return (
         <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
-            {/* Define ALL possible screens unconditionally */}
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
             <Stack.Screen name="FacultyDashboard" component={FacultyDashboardScreen} />
             <Stack.Screen name="StudentMain" component={StudentTabNavigator} />
+             <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} />
+             <Stack.Screen name="AssignmentDetail" component={AssignmentDetailScreen} />
+             <Stack.Screen name="MyMarks" component={MyMarksScreen} />
+             <Stack.Screen name="Profile" component={ProfileScreen} />
             
             <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
             <Stack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
@@ -70,6 +78,11 @@ const AppStack = () => {
             <Stack.Screen name="Workspace" component={WorkspaceScreen} />
             <Stack.Screen name="UploadFile" component={UploadFileScreen} />
             <Stack.Screen name="EditFile" component={EditFileScreen} />
+            <Stack.Screen name="MyCourses" component={MyCoursesScreen} />
+            <Stack.Screen name="CourseDashboard" component={CourseDashboardScreen} />
+            <Stack.Screen name="AddAssignment" component={AddAssignmentScreen} />
+            <Stack.Screen name="AddExam" component={AddExamScreen} />
+             <Stack.Screen name="GradeAssessment" component={GradeAssessmentScreen} />
 
             <Stack.Screen name="UserManagement" component={UserManagementScreen} />
             <Stack.Screen name="AddUser" component={AddUserScreen} />
@@ -93,8 +106,7 @@ const AppStack = () => {
             <Stack.Screen name="ManageHostelStudents" component={ManageHostelStudentsScreen} />
             <Stack.Screen name="AssignHostelDetail" component={AssignHostelDetailScreen} />
 
-            <Stack.Screen name="StudentHostel" component={StudentHostelScreen} />
-            <Stack.Screen name="StudentAbout" component={StudentAboutScreen} />
+            
         </Stack.Navigator>
     );
 };
