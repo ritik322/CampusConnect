@@ -49,7 +49,7 @@ const ManageHostelStudentsScreen = ({ route, navigation }) => {
       const lowercasedSearch = search.toLowerCase();
       const filtered = masterStudentList.filter(student =>
         student.displayName.toLowerCase().includes(lowercasedSearch) ||
-        student.academicInfo?.rollNumber.toLowerCase().includes(lowercasedSearch)
+        student.academicInfo?.urn.toLowerCase().includes(lowercasedSearch)
       );
       setFilteredStudents(filtered);
     } else {
@@ -69,7 +69,7 @@ const ManageHostelStudentsScreen = ({ route, navigation }) => {
       >
         <View>
           <Text className="text-lg font-bold text-gray-800">{student.displayName}</Text>
-          <Text className="text-gray-600">Roll No: {student.academicInfo?.rollNumber}</Text>
+          <Text className="text-gray-600">Roll No: {student.academicInfo?.urn}</Text>
         </View>
         <View className={`px-3 py-1 rounded-full ${cardColor}`}>
             <Text className={`font-bold ${textColor}`}>{hostelName}</Text>

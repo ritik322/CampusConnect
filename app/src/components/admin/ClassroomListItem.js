@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const ClassroomListItem = ({ classroom }) => {
+const ClassroomListItem = ({ classroom, onEdit, onDelete }) => {
   return (
     <View className="bg-white flex-row items-center p-4 mb-4 rounded-2xl shadow-sm">
       <View className="p-3 bg-green-100 rounded-full">
@@ -12,9 +12,16 @@ const ClassroomListItem = ({ classroom }) => {
         <Text className="text-lg font-semibold text-gray-800">Room: {classroom.roomNumber}</Text>
         <Text className="text-sm text-gray-500">Capacity: {classroom.capacity}</Text>
       </View>
-      <View className="px-3 py-1 bg-gray-200 rounded-full">
+      <View className="px-3 py-1 bg-gray-200 rounded-full mr-2">
         <Text className="text-xs font-bold text-gray-600 uppercase">{classroom.department}</Text>
       </View>
+
+      <View className="flex-row">
+        <TouchableOpacity onPress={onDelete} className="p-2">
+          <Icon name="delete" size={24} color="#EF4444" />
+        </TouchableOpacity>
+      </View>
+      
     </View>
   );
 };

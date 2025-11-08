@@ -23,19 +23,24 @@ const createClassroom = async (req, res) => {
 };
 
 const getAllClassrooms = async (req, res) => {
-  try {
-    const userDoc = await db.collection('users').doc(req.user.uid).get();
-    if (!userDoc.exists) return res.status(404).send({ message: 'User not found.' });
-    const userData = userDoc.data();
+    try {
+        const adminUser = req.user;
+        let query = db.collection('classrooms');
 
-    const classroomsSnapshot = await db.collection('classrooms').where('department', '==', userData.department).get();
-    const classrooms = classroomsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.status(200).send(classrooms);
-  } catch (error) {
-    console.error('Error fetching classrooms:', error);
-    res.status(500).send({ message: 'Error fetching classrooms.' });
-  }
-};;
+
+        if (adminUser.permissionLevel === 'hod') {
+            query = query.where('department', '==', adminUser.adminDomain);
+        }
+
+        const snapshot = await query.get();
+        const classrooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.status(200).send(classrooms);
+        
+    } catch (error) {
+        console.error("Error fetching classrooms:", error);
+        res.status(500).send({ message: 'Error fetching classrooms.' });
+    }
+};
 
 const updateClassroom = async (req, res) => {
   try {

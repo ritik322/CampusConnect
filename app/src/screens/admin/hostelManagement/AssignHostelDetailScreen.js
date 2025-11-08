@@ -14,7 +14,6 @@ const AssignHostelDetailScreen = ({ route, navigation }) => {
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
 
-    // State for the new DropDownPicker
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(student.hostelInfo?.hostelId || null);
     const [items, setItems] = useState([]);

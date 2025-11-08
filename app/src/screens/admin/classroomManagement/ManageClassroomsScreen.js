@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import auth from '@react-native-firebase/auth';
@@ -31,6 +31,34 @@ const ManageClassroomsScreen = ({ navigation }) => {
     }, [])
   );
 
+  const handleDelete = (classroomId) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this classroom?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const idToken = await auth().currentUser.getIdToken();
+              await axios.delete(`${API_URL}/classrooms/${classroomId}`, {
+                headers: { Authorization: `Bearer ${idToken}` }
+              });
+              setClassrooms(prevClassrooms => 
+                prevClassrooms.filter(c => c.id !== classroomId)
+              );
+            } catch (error) {
+              console.error("Failed to delete classroom:", error);
+              Alert.alert("Error", "Could not delete classroom.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="p-6 flex-row items-center">
@@ -45,7 +73,12 @@ const ManageClassroomsScreen = ({ navigation }) => {
       ) : (
         <FlatList
           data={classrooms}
-          renderItem={({ item }) => <ClassroomListItem classroom={item} />}
+          renderItem={({ item }) => (
+            <ClassroomListItem 
+              classroom={item}
+              onDelete={() => handleDelete(item.id)}
+            />
+          )}
           keyExtractor={item => item.id}
           contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
           ListEmptyComponent={<Text className="text-center text-gray-500 mt-10">No classrooms found.</Text>}
