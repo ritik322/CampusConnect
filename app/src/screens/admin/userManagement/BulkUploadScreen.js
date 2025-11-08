@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator, StyleSheet, PermissionsAndroid, Platform, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { pick, types } from '@react-native-documents/picker';
 import axios from 'axios';
@@ -7,49 +7,50 @@ import auth from '@react-native-firebase/auth';
 import API_URL from '../../../config/apiConfig';
 import Toast from 'react-native-toast-message';
 import RNFS from 'react-native-fs';
+import Share from 'react-native-share';
 
 const BulkUploadScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
 
-    const csvTemplate = "displayName,email,password,role,rollNumber,batch,department,isHosteller,username\nJohn Doe,john.doe@example.com,password123,student,2101234,2022-2026,CSE,true,\nJane Smith,jane.smith@example.com,password123,faculty,,,,IT,jane_smith_username";
+    const csvTemplate = "displayName,email,password,role,rollNumber,batch,department,isHosteller,username\nJohn Doe,john.doe@example.com,password123,student,2101234,2022-2026,cse,true,\nJane Smith,jane.smith@example.com,password123,faculty,,,,it,jane_smith_username";
 
     const handleDownloadTemplate = async () => {
         try {
-            if (Platform.OS === 'android') {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                    {
-                        title: 'Storage Permission Required',
-                        message: 'CampusConnect needs access to your storage to download the template file.',
-                        buttonPositive: 'OK',
-                    },
-                );
-                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-                    Toast.show({ type: 'error', text2: 'Storage permission denied.' });
-                    return;
-                }
-            }
-
-            const path = `${RNFS.DownloadDirectoryPath}/user_template.csv`;
+            const fileName = 'user_template.csv';
+            const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
+            
             await RNFS.writeFile(path, csvTemplate, 'utf8');
-            Toast.show({ type: 'success', text2: 'Template saved to your Downloads folder!' });
-
+            
+            await Share.open({
+                url: `file://${path}`,
+                type: 'text/csv',
+                filename: fileName,
+                saveToFiles: true,
+            });
+            
         } catch (error) {
-            console.error("Failed to download template:", error);
-            Toast.show({ type: 'error', text2: 'Could not download the template file.' });
+            if (error.message !== 'User did not share') {
+                console.error("Failed to share template:", error);
+                Toast.show({ 
+                    type: 'error', 
+                    text1: 'Download Failed',
+                    text2: 'Could not share the template file.' 
+                });
+            }
         }
     };
 
     const handleFilePick = async () => {
         try {
             const res = await pick({
-                type: [types.csv,types.xlsx],
+                type: [types.csv, types.xlsx],
             });
             setSelectedFile(res[0]);
             setResult(null); 
         } catch (err) {
+            console.log(err)
         }
     };
 
@@ -113,7 +114,7 @@ const BulkUploadScreen = ({ navigation }) => {
                 <TouchableOpacity onPress={handleFilePick} className="bg-white p-4 mt-4 rounded-lg border border-gray-300 flex-row items-center justify-center">
                     <Icon name="upload" size={20} color="#4A5568" />
                     <Text className="text-lg text-gray-800 font-semibold ml-2" numberOfLines={1}>
-                        {selectedFile ? selectedFile.name : 'Select CSV File'}
+                        {selectedFile ? selectedFile.name : 'Select CSV/XLSX File'}
                     </Text>
                 </TouchableOpacity>
 
@@ -165,4 +166,3 @@ const styles = StyleSheet.create({
 });
 
 export default BulkUploadScreen;
-
