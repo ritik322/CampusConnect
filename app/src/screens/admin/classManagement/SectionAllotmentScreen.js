@@ -24,11 +24,11 @@ const SectionAllotmentScreen = ({ navigation }) => {
   const [deptOpen, setDeptOpen] = useState(false);
   const [deptValue, setDeptValue] = useState(null);
   const [deptItems, setDeptItems] = useState([
-    { label: 'Computer Science (CSE)', value: 'CSE' },
-    { label: 'Information Technology', value: 'IT' },
-    { label: 'Mechanical', value: 'Mechanical' },
-    { label: 'Civil', value: 'Civil' },
-    { label: 'Electrical', value: 'Electrical' },
+    { label: 'Computer Science (CSE)', value: 'cse' },
+    { label: 'Information Technology', value: 'it' },
+    { label: 'Mechanical', value: 'me' },
+    { label: 'Civil', value: 'ce' },
+    { label: 'Electrical', value: 'ee' },
   ]);
 
   const [batchOpen, setBatchOpen] = useState(false);

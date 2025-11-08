@@ -18,11 +18,11 @@ const EditNoticeScreen = ({ route, navigation }) => {
     const [value, setValue] = useState(JSON.stringify(notice.targetAudience));
     const [items, setItems] = useState([
         { label: 'Entire College', value: JSON.stringify({ type: 'GLOBAL', value: 'ALL' }) },
-        { label: 'Computer Science (CSE)', value: JSON.stringify({ type: 'DEPARTMENT', value: 'CSE' }) },
-        { label: 'Information Technology', value: JSON.stringify({ type: 'DEPARTMENT', value: 'IT' }) },
-        { label: 'Mechanical', value: JSON.stringify({ type: 'DEPARTMENT', value: 'Mechanical' }) },
-        { label: 'Civil', value: JSON.stringify({ type: 'DEPARTMENT', value: 'Civil' }) },
-        { label: 'Electrical', value: JSON.stringify({ type: 'DEPARTMENT', value: 'Electrical' }) },
+        { label: 'Computer Science (CSE)', value: JSON.stringify({ type: 'DEPARTMENT', value: 'cse' }) },
+        { label: 'Information Technology', value: JSON.stringify({ type: 'DEPARTMENT', value: 'it' }) },
+        { label: 'Mechanical', value: JSON.stringify({ type: 'DEPARTMENT', value: 'me' }) },
+        { label: 'Civil', value: JSON.stringify({ type: 'DEPARTMENT', value: 'ce' }) },
+        { label: 'Electrical', value: JSON.stringify({ type: 'DEPARTMENT', value: 'ee' }) },
     ]);
 
     const handleUpdate = async () => {

@@ -20,7 +20,6 @@ const GenerateTimetableScreen = ({ navigation }) => {
     const { userProfile } = useAuth();
     const [generating, setGenerating] = useState(false);
 
-    // State for the new DropDownPicker
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [items, setItems] = useState(departmentItems);

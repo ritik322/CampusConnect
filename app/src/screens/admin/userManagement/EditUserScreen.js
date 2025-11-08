@@ -71,24 +71,19 @@ const EditUserScreen = ({ route, navigation }) => {
   const [department, setDepartment] = useState(user.academicInfo?.department || user.department);
   const [rollNumber, setRollNumber] = useState(user.academicInfo?.urn || '');
 
-  // STUDENT'S BATCH (e.g., "2022-26")
   const [batch, setBatch] = useState(user.academicInfo?.batch || '');
   
-  // --- STUDENT'S CURRENT YEAR (e.g., 4) - Now auto-calculated ---
   const [derivedYear, setDerivedYear] = useState(
     getAcademicYear(user.academicInfo?.batch)
   );
-  // --- End Auto-Calculated Year ---
 
   const [isHosteller, setIsHosteller] = useState(user.isHosteller || false);
 
-  // --- Class State (was Section State) ---
   const [classId, setClassId] = useState(user.academicInfo?.classId || null);
   const [classOpen, setClassOpen] = useState(false);
   const [classItems, setClassItems] = useState([]); // Filtered items for dropdown
   const [allClasses, setAllClasses] = useState([]); // Master list of all classes
   const [classLoading, setClassLoading] = useState(false); // For fetching master list
-  // --- End Class State ---
 
   const [adminPermissionLevel, setAdminPermissionLevel] = useState(
     user.permissionLevel || null,
@@ -105,11 +100,11 @@ const EditUserScreen = ({ route, navigation }) => {
 
   const [deptOpen, setDeptOpen] = useState(false);
   const [deptItems, setDeptItems] = useState([
-    { label: 'Computer Science (CSE)', value: 'CSE' },
-    { label: 'Information Technology', value: 'IT' },
-    { label: 'Mechanical', value: 'Mechanical' },
-    { label: 'Civil', value: 'Civil' },
-    { label: 'Electrical', value: 'Electrical' },
+    { label: 'Computer Science (CSE)', value: 'cse' },
+    { label: 'Information Technology', value: 'it' },
+    { label: 'Mechanical', value: 'me' },
+    { label: 'Civil', value: 'ce' },
+    { label: 'Electrical', value: 'ee' },
   ]);
 
   const [adminPermOpen, setAdminPermOpen] = useState(false);
@@ -119,7 +114,6 @@ const EditUserScreen = ({ route, navigation }) => {
     { label: 'Warden (Hostel Management)', value: 'warden' },
   ]);
 
-  // --- Effect 1: Fetch ALL classes once on component mount ---
   useEffect(() => {
     const fetchAllClasses = async () => {
       setClassLoading(true);
@@ -128,7 +122,7 @@ const EditUserScreen = ({ route, navigation }) => {
         const response = await axios.get(`${API_URL}/classes`, {
           headers: { Authorization: `Bearer ${idToken}` },
         });
-        setAllClasses(response.data); // Store the master list
+        setAllClasses(response.data); 
       } catch (error) {
         console.error('Failed to fetch all classes:', error);
         Toast.show({ type: 'error', text2: 'Failed to load classes.' });
@@ -138,17 +132,14 @@ const EditUserScreen = ({ route, navigation }) => {
     };
 
     fetchAllClasses();
-  }, []); // Runs only once
+  }, []); 
 
-  // --- Effect 2: Update derivedYear when batch string changes ---
   useEffect(() => {
     const year = getAcademicYear(batch);
     setDerivedYear(year);
   }, [batch]);
 
-  // --- Effect 3: Filter classes whenever role, derivedYear, dept, or master list changes ---
   useEffect(() => {
-    // Now, filter by the new 'derivedYear' state
     const yearAsNumber = derivedYear;
 
     if (role === 'student' && yearAsNumber && department && allClasses.length > 0) {
@@ -157,10 +148,9 @@ const EditUserScreen = ({ route, navigation }) => {
         s => s.year === yearAsNumber && s.department === department,
       );
 
-      // Format for the dropdown
       const formatted = filtered.map(s => ({
         label: s.className, // <-- Use className from your backend
-        value: s.id,   // <-- Assuming your section object has 'id'
+        value: s.id,   
       }));
 
       setClassItems(formatted);
@@ -170,21 +160,18 @@ const EditUserScreen = ({ route, navigation }) => {
         setClassId(null);
       }
     } else {
-      // If not a student or missing info, clear the class list
       setClassItems([]);
       setClassId(null);
     }
-  }, [role, derivedYear, department, allClasses]); // --- CHANGED to 'derivedYear' ---
+  }, [role, derivedYear, department, allClasses]); 
 
   const handleUpdateUser = async () => {
-    // Start with the basic data that is always updated
     const updatedData = {
       displayName: displayName.trim(),
       role,
     };
 
     if (role === 'student') {
-      // Check derivedYear
       if (!rollNumber.trim() || !batch.trim() || !derivedYear || !department) {
         if(!derivedYear) {
             Toast.show({ type: 'error', text2: 'Please enter a valid Batch Range.' });
@@ -196,22 +183,19 @@ const EditUserScreen = ({ route, navigation }) => {
       updatedData.username = rollNumber.trim();
       updatedData.isHosteller = isHosteller;
 
-      // --- FIX: Send data in the format the backend expects ---
-      // Send the full object for the 'academicInfo.urn' field
+      
       updatedData.academicInfo = {
         ...user.academicInfo,
         urn: rollNumber.trim(),
         batch: batch.trim(),
         year: derivedYear,
-        department: department,
+        
         classId: classId,
       };
-      
-      // Send the individual fields your backend is looking for
+      updatedData.department = department,
       updatedData.batch = batch.trim();
       updatedData.year = derivedYear;
       updatedData.classId = classId;
-      // --- END FIX ---
 
     } else if (role === 'faculty' || role === 'admin') {
       if (!username.trim() || !department) {
@@ -256,6 +240,7 @@ const EditUserScreen = ({ route, navigation }) => {
     try {
       const idToken = await auth().currentUser.getIdToken();
       // updatedData now contains all the fields your backend needs
+      console.log(department)
       await axios.put(`${API_URL}/users/${user.id}`, updatedData, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
@@ -289,7 +274,7 @@ const EditUserScreen = ({ route, navigation }) => {
             setItems={setDeptItems}
             placeholder="Select a department..."
             zIndex={2000}
-            listMode="SCROLLVIEW" // --- FIX: Removed "MODAL" ---
+            listMode="SCROLLVIEW" 
             style={styles.pickerStyle}
             dropDownContainerStyle={styles.dropdownContainerStyle}
           />
@@ -349,7 +334,7 @@ const EditUserScreen = ({ route, navigation }) => {
           setOpen={setRoleOpen}
           setValue={setRole}
           setItems={setRoleItemsList}
-          zIndex={3000} // --- FIX: Added zIndex ---
+          zIndex={3000} 
           listMode="SCROLLVIEW" // --- FIX: Removed "MODAL" ---
           style={styles.pickerStyle}
           dropDownContainerStyle={styles.dropdownContainerStyle}
@@ -375,7 +360,6 @@ const EditUserScreen = ({ route, navigation }) => {
                 value={batch}
                 onChangeText={setBatch}
             />
-
             {/* --- MODIFIED YEAR TEXTINPUT --- */}
             <Text className="text-base text-gray-600 mb-2">Current Year (Auto-calculated)</Text>
             <TextInput

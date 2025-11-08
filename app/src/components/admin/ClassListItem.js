@@ -12,7 +12,7 @@ const ClassListItem = ({ item, onPress }) => {
         <Icon name="google-classroom" size={24} color="#0E7490" />
       </View>
       <View className="ml-4 flex-1">
-        <Text className="text-lg font-semibold text-gray-800">{item.className}</Text>
+        <Text className="text-lg font-semibold text-gray-800">{item.className.toUpperCase()}</Text>
         <Text className="text-sm text-gray-500">Year {item.year}, Section {item.section}</Text>
       </View>
       <View className="px-3 py-1 bg-gray-200 rounded-full">

@@ -27,8 +27,8 @@ const PublishNoticeScreen = ({ navigation }) => {
             if (userProfile.permissionLevel === 'superadmin') {
                 options.push({ label: 'Entire College', value: JSON.stringify({ type: 'GLOBAL', value: 'ALL' }) });
                 const departments = [
-                    { label: 'Computer Science (CSE)', value: 'CSE' }, { label: 'Information Technology', value: 'IT' },
-                    { label: 'Mechanical', value: 'Mechanical' }, { label: 'Civil', value: 'Civil' }, { label: 'Electrical', value: 'Electrical' }
+                    { label: 'Computer Science (CSE)', value: 'cse' }, { label: 'Information Technology', value: 'it' },
+                    { label: 'Mechanical', value: 'me' }, { label: 'Civil', value: 'ce' }, { label: 'Electrical', value: 'ee' }
                 ];
                 departments.forEach(d => options.push({ label: d.label, value: JSON.stringify({ type: 'DEPARTMENT', value: d.value }) }));
                 
