@@ -212,10 +212,8 @@ const submitGradesForAssessment = async (req, res) => {
 
         const batch = db.batch();
 
-        // --- THE REFINEMENT IS HERE ---
         for (const mark of marksData) {
             if (mark.studentId && mark.marksObtained !== null) {
-                // 1. Always write the grade to the 'marks' collection.
                 const markRef = db.collection("marks").doc(`${id}_${mark.studentId}`);
                 batch.set(markRef, {
                     assessmentId: id,
@@ -226,7 +224,6 @@ const submitGradesForAssessment = async (req, res) => {
                     subjectId: assessment.subjectId,
                 });
 
-                // 2. If it's an assignment, also update the submission status.
                 if (assessment.type === 'Assignment') {
                     const submissionQuery = await db.collection('submissions')
                         .where('assignmentId', '==', id)
@@ -240,7 +237,6 @@ const submitGradesForAssessment = async (req, res) => {
                 }
             }
         }
-        // --- END OF REFINEMENT ---
 
         await batch.commit();
         res.status(200).send({ message: "Grades submitted successfully." });

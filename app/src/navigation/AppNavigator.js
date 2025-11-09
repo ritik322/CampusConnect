@@ -111,7 +111,6 @@ const AppStack = () => {
     );
 };
 
-// This component now contains the notification logic.
 const NotificationHandler = () => {
     const navigation = useNavigation();
     const { userProfile } = useAuth();
@@ -155,7 +154,7 @@ const NotificationHandler = () => {
         };
     }, [userProfile, navigation]);
 
-    return null; // This component does not render anything
+    return null; 
 };
 
 
@@ -164,7 +163,6 @@ const AppNavigator = () => {
 
     return (
         <NavigationContainer>
-            {/* The NotificationHandler is now inside the container, so it can navigate */}
             <NotificationHandler /> 
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {user == null ? (

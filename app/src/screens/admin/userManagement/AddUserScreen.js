@@ -80,15 +80,15 @@ const AddUserScreen = ({ navigation }) => {
     };
 
     if (roleValue === 'student') {
-      if (!rollNumber.trim() || !batch.trim() || !department) {
+      if (!batch.trim() || !department) {
         Toast.show({ type: 'error', text2: 'Please fill all student fields.' });
         return;
       }
       userToCreate.department = department;
       userToCreate.batch = batch.trim();
-      userToCreate.username = rollNumber.trim();
+      userToCreate.username = rollNumber?.trim();
       userToCreate.academicInfo = {
-        rollNumber: rollNumber.trim(),
+        rollNumber: rollNumber?.trim(),
       };
       userToCreate.isHosteller = isHosteller;
     } else {

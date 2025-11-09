@@ -21,7 +21,7 @@ const createNotice = async (req, res) => {
             content, 
             attachmentUrl, 
             targetAudience,
-            audienceTags, // Add this for querying
+            audienceTags, 
             authorId, 
             authorName, 
             createdAt: new Date(),
@@ -29,7 +29,6 @@ const createNotice = async (req, res) => {
 
         const docRef = await db.collection('notices').add(newNotice);
 
-        // Send notifications asynchronously (don't block response)
         sendNotificationsToUsers(docRef.id, title, content, targetAudience)
             .catch(error => console.error('Error sending notifications:', error));
 
@@ -46,9 +45,8 @@ const createNotice = async (req, res) => {
 
 async function sendNotificationsToUsers(noticeId, title, content, targetAudience) {
     try {
-        let usersQuery = db.collection("users");
-        
-        if (targetAudience.type === "DEPARTMENT") {
+        let usersQuery = db.collection("users")
+         if (targetAudience.type === "DEPARTMENT") {
             usersQuery = usersQuery.where("department", "==", targetAudience.value);
         } else if (targetAudience.type === "HOSTEL") {
             usersQuery = usersQuery.where("hostelInfo.hostelId", "==", targetAudience.value);

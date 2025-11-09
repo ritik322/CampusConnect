@@ -129,7 +129,6 @@ const UploadFileScreen = () => {
                 <Text className="text-base text-gray-600 mb-2">Tags (Optional)</Text>
                 <View className="flex-row items-center bg-white rounded-lg border border-gray-300 mb-4">
                     <TextInput className="flex-1 p-4 text-lg text-black" value={tags} onChangeText={setTags} placeholder="e.g., Exam, Syllabus" />
-                    {/* --- NEW: Button to open the tag modal --- */}
                     <TouchableOpacity onPress={() => setModalVisible(true)} className="p-3">
                         <Icon name="tag-plus-outline" size={24} color="#4A5568" />
                     </TouchableOpacity>

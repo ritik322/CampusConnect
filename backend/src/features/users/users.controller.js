@@ -4,6 +4,38 @@ const xlsx = require("xlsx");
 const csv = require("csv-parser");
 const stream = require("stream");
 
+const departmentCodes = {
+  cse: "05",
+  it: "07",
+  me: "02",
+  ce: "01",
+  ee: "03",
+};
+
+const generateNewRollNumber = async (transaction, batch, department) => {
+  const admissionYear = batch.substring(2, 4);
+  const deptCode = departmentCodes[department];
+
+  if (!deptCode) {
+    throw new Error(`Invalid department: ${department}`);
+  }
+
+  const counterRef = db.collection("counters").doc(`${admissionYear}_${deptCode}`);
+  const counterDoc = await transaction.get(counterRef);
+
+  let nextCount = 1;
+  if (counterDoc.exists) {
+    nextCount = counterDoc.data().currentCount + 1;
+  }
+
+  const sequentialNumber = nextCount.toString().padStart(3, "0");
+  const rollNumber = `${admissionYear}${deptCode}${sequentialNumber}`;
+
+  transaction.set(counterRef, { currentCount: nextCount }, { merge: true });
+
+  return rollNumber;
+};
+
 const getUnassignedBatches = async (req, res) => {
   try {
     const snapshot = await db
@@ -84,7 +116,6 @@ const bulkCreateUsers = async (req, res) => {
         email,
         password,
         role,
-        rollNumber,
         batch,
         department,
         isHosteller,
@@ -109,43 +140,48 @@ const bulkCreateUsers = async (req, res) => {
           throw new Error("Email already exists in the system.");
         }
 
-        const userRecord = await admin
-          .auth()
-          .createUser({ email, password, displayName });
-        const uid = userRecord.uid;
+        await db.runTransaction(async (transaction) => {
+          const userRecord = await admin
+            .auth()
+            .createUser({ email, password, displayName });
+          const uid = userRecord.uid;
 
-        const newUser = {
-          uid,
-          email,
-          displayName,
-          role,
-          createdAt: new Date(),
-        };
+          let newUser = {
+            uid,
+            email,
+            displayName,
+            role,
+            createdAt: new Date(),
+          };
 
-        if (role === "student") {
-          if (!rollNumber || !batch || !department) {
-            throw new Error(
-              "Missing student fields: rollNumber, batch, department."
-            );
-          }
-          newUser.username = rollNumber.toString();
-          (newUser.department = department),
-            (newUser.academicInfo = {
-              urn: rollNumber.toString(),
+          if (role === "student") {
+            if (!batch || !department) {
+              throw new Error("Missing student fields: batch, department.");
+            }
+            
+            const rollNumber = await generateNewRollNumber(transaction, batch, department);
+            
+            newUser.username = rollNumber;
+            newUser.department = department;
+            newUser.academicInfo = {
+              urn: rollNumber,
               batch: batch,
               classId: null,
-            });
-          newUser.isHosteller =
-            (isHosteller || false).toString().toLowerCase() === "true";
-        } else if (role === "faculty") {
-          if (!username || !department) {
-            throw new Error("Missing faculty fields: username, department.");
+            };
+            newUser.isHosteller =
+              (isHosteller || false).toString().toLowerCase() === "true";
+          } else if (role === "faculty") {
+            if (!username || !department) {
+              throw new Error("Missing faculty fields: username, department.");
+            }
+            newUser.username = username.toString();
+            newUser.department = department;
           }
-          newUser.username = username.toString();
-          newUser.department = department;
-        }
 
-        await db.collection("users").doc(uid).set(newUser);
+          const userRef = db.collection("users").doc(uid);
+          transaction.set(userRef, newUser);
+        });
+
         existingEmails.add(email);
         successCount++;
       } catch (error) {
@@ -166,7 +202,7 @@ const bulkCreateUsers = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send({ message: "Failed to process CSV file.", error: error.message });
+      .send({ message: "Failed to process file.", error: error.message });
   }
 };
 
@@ -201,7 +237,6 @@ const createUser = async (req, res) => {
     role,
     department,
     username,
-    academicInfo,
     batch,
     isHosteller,
     permissionLevel,
@@ -209,40 +244,50 @@ const createUser = async (req, res) => {
   } = req.body;
 
   try {
-    const userRecord = await admin
-      .auth()
-      .createUser({ email, password, displayName });
-    const uid = userRecord.uid;
+    let newUser;
 
-    const newUser = {
-      uid,
-      email,
-      displayName,
-      role,
-      createdAt: new Date(),
-    };
+    await db.runTransaction(async (transaction) => {
+      const userRecord = await admin
+        .auth()
+        .createUser({ email, password, displayName });
+      const uid = userRecord.uid;
 
-    if (role === "student") {
-      newUser.username = academicInfo.rollNumber;
-      newUser.department = department;
-      newUser.academicInfo = {
-        urn: academicInfo.rollNumber.toString(),
-        batch: batch,
-        department: department,
-        classId: null, 
+      newUser = {
+        uid,
+        email,
+        displayName,
+        role,
+        createdAt: new Date(),
       };
-      newUser.isHosteller = isHosteller || false;
-    } else if (role === "faculty") {
-      newUser.username = username;
-      newUser.department = department;
-    }
 
-    if (role === "admin") {
-      newUser.permissionLevel = permissionLevel;
-      newUser.adminDomain = adminDomain;
-    }
+      if (role === "student") {
+        if (!batch || !department) {
+          throw new Error("Missing student fields: batch, department.");
+        }
+        
+        const rollNumber = await generateNewRollNumber(transaction, batch, department);
+        
+        newUser.username = rollNumber;
+        newUser.department = department;
+        newUser.academicInfo = {
+          urn: rollNumber,
+          batch: batch,
+          department: department,
+          classId: null,
+        };
+        newUser.isHosteller = isHosteller || false;
+      } else if (role === "faculty") {
+        newUser.username = username;
+        newUser.department = department;
+      } else if (role === "admin") {
+        newUser.permissionLevel = permissionLevel;
+        newUser.adminDomain = adminDomain;
+      }
 
-    await db.collection("users").doc(uid).set(newUser);
+      const userRef = db.collection("users").doc(uid);
+      transaction.set(userRef, newUser);
+    });
+
     res
       .status(201)
       .send({ message: "User created successfully.", user: newUser });
